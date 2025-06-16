@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple 3D FPS</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: black; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    var movement = 0;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Map: 1 = wall, 0 = empty space
+    const map = [
+      [1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,1,0,1,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1],
+    ];
+
+    const tileSize = 64;
+    let player = { x: 150, y: 150, angle: 0 };
+    const fov = Math.PI / 3;
+    var speed = 3 ;
+    const keys = {};
+    document.addEventListener("keydown", e => keys[e.key] = true);
+    document.addEventListener("keyup", e => keys[e.key] = false);
+
+    function updatePlayer() {
+      
+      let speed_2 =3
+      let time = performance.now() / 1000;
+      if (keys['a']){
+
+        player.angle -= 0.05/speed_2;
+       //movement += Math.cos(movement/45) *55;
+      } 
+      if (keys['d']) {
+        player.angle += 0.05/speed_2;
+       // movement -= Math.cos(movement/45) *55;
+      }
+      
+      if (keys['w']) {
+      //  movement += Math.cos(movement/45) *55;
+
+        player.x += Math.cos(player.angle) * speed;
+        player.y += Math.sin(player.angle) * speed ;
+      }
+      if (keys['s']) {
+        player.x -= Math.cos(player.angle) * speed;
+        player.y -= Math.sin(player.angle) * speed;
+        // movement -= Math.cos(movement/45) *55;
+      }
+    }
+    // Projectiles array
+    const projectiles = [];
+
+    // Listen for spacebar to shoot
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space") {
+        
+      // Shoot a projectile from player position in facing direction
+     
+      }
+    });
+/*
+    function updateProjectiles() {
+      for (let proj of projectiles) {
+      if (!proj.alive) continue;
+      // Move projectile
+      proj.x += Math.cos(proj.angle) * proj.speed;
+      proj.y += Math.sin(proj.angle) * proj.speed;
+      // Check collision with walls
+      let mapX = Math.floor(proj.x / tileSize);
+      let mapY = Math.floor(proj.y / tileSize);
+      if (map[mapY]?.[mapX]) {
+        proj.alive = false;
+      }
+      }
+    }
+
+    function drawProjectiles() {
+      ctx.save();
+      ctx.fillStyle = "red";
+      for (let proj of projectiles) {
+      if (!proj.alive) continue;
+      // Project projectile to screen (simple 3D projection)
+      let dx = proj.x - player.x;
+      let dy = proj.y - player.y;
+      let angleToProj = Math.atan2(dy, dx) - player.angle;
+      // Only draw if within FOV
+      if (Math.abs(angleToProj) < fov / 2) {
+        let dist = Math.sqrt(dx * dx + dy * dy);
+        let projScreenX = (0.5 + angleToProj / fov) * canvas.width;
+        let size = Math.max(2, 200 / dist);
+        ctx.beginPath();
+        ctx.arc(projScreenX, canvas.height / 2, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      }
+      ctx.restore();
+    }
+
+    // Patch castRays to draw projectiles after walls
+    const oldCastRays = castRays;
+    castRays = function() {
+      oldCastRays();
+      drawProjectiles();
+    };
+
+    // Patch loop to update projectiles
+    const oldLoop = loop;
+    loop = function() {
+      updatePlayer();
+      updateProjectiles();
+      castRays();
+      requestAnimationFrame(loop);
+    };*/
+    function castRays() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      //the amount of rays to cast in width.
+      //this for th efor loop to iterate through each ray.
+      const numRays = canvas.width;
+      //step angle for each ray based on the field of view.
+      //this iterates through the rays as well as i 
+      const angleStep = fov / numRays;
+      //starting angle for the first ray. so first would be 0-pi/3/2
+      let rayAngle = player.angle - fov/2;
+
+      for (let i = 0; i < numRays; i++) {
+        // Calculate the ray's direction
+        let sin = Math.sin(rayAngle);
+        let cos = Math.cos(rayAngle);
+        // Initialize distance and hit flag
+        let dist = 0;
+        // Check for wall collision
+        let hit = false;
+
+        while (!hit && dist < 1000)
+ {// Cast the ray
+          // Calculate the map coordinates based on player position and ray direction
+          //inclement using dist instead of i basically.
+          dist +=0.25;
+          // Check if the ray hits a wall.so player x and y manipulate cos sine on the outside. 64 is constant. and dist is the
+          //distance that is looped through. this used through multiplication. so which location to multiply and add.
+          //an axample would be 150 +cosine(0-pi/3/2) *50*/64
+          let mapX = Math.floor((player.x + cos * dist) / tileSize);
+          let mapY = Math.floor((player.y + sin * dist) / tileSize);
+         
+          if (map[mapY]?.[mapX]) hit = true;
+         // console.log("this is player.x", player.x, "this is player.y", player.y, "this is mapX", mapX, "this is mapY", mapY, "this is dist", dist);
+       
+        }
+        
+
+        let wallHeight = Math.min(20000 / dist, canvas.height);
+        let shade = 255 - dist *1.5;
+         // If it's a wall, set shade to 0
+        ;
+        //when you replace with a constant number from i then it bounces when holding right or stretches when going back and forth.
+        //an example would be 500,400,1,400
+
+        //caste floor on all perspectives...
+        if(true){
+
+
+          //(fourth perspective)
+          var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
+
+          var f_y2 =  wallHeight- (i / 25.5) +150;
+          var o_y1=(canvas.height - wallHeight)/2
+          //fourth perspective 
+          ctx.globalAlpha = 0.8;
+          ctx.fillStyle = `rgb(0,0,${shade})`
+          ctx.fillRect(i, f_y1, 1, wallHeight);
+          ctx.globalAlpha = 0.8;
+          //caste floor(first perspective)
+          ctx.globalAlpha = 0.8;
+
+          ctx.fillStyle = `rgb(${shade},${shade},255)`
+          ctx.fillRect(i, o_y1, 1, (canvas.height+wallHeight)+500);
+
+
+        
+         
+
+
+          //second perspective 
+          ctx.fillStyle = `rgb(0,0,${250})`
+          ctx.fillRect(i, ((canvas.height - wallHeight)-100-(i/5.5)), 1, wallHeight);
+
+
+          //third perspective
+          ctx.fillStyle = `rgb(${shade},${(shade*5)+250},55)`
+          ctx.fillRect(i,(canvas.height - wallHeight)-100, 1, wallHeight);
+
+
+          //first perspective
+          ctx.fillStyle = `rgb(${shade},${shade/2},${shade})`
+          ctx.fillRect(i+movement, o_y1, 1, wallHeight);
+
+
+   
+
+
+
+
+
+
+
+
+
+          ctx.globalAlpha = 0.5;
+          //caste floor(first perspective)
+         
+         //5 perspective 
+          ctx.fillStyle = `rgb(0,0,${shade*2})`
+          ctx.fillRect(i,-1*( (canvas.height - wallHeight)-900-(i/5.5)), 1, wallHeight);
+          ctx.globalAlpha = 0.5;
+
+
+          //6 perspective
+          ctx.fillStyle = `rgb(${shade/2},${shade*2},55)`
+          ctx.fillRect(i,-1*((canvas.height - wallHeight)-900), 1, wallHeight);
+          ctx.globalAlpha = 0.5;
+
+
+          //7 perspective
+          ctx.fillStyle = `rgb(${shade/2},${shade*2},${shade})`
+          ctx.fillRect(i+movement, -1*o_y1 -900, 1, wallHeight);
+          ctx.globalAlpha = 0.5;
+
+
+          
+          
+
+
+
+
+            //randomize the shading with addd/subtacting/*multiplying random magic numbers.
+
+
+            
+          //extra perspectives
+          //xcross 1
+          ctx.fillStyle = `rgb(255,55,55)`
+          ctx.fillRect(i, (canvas.height - wallHeight)-500+(i), 1, wallHeight);
+          //xcross 2
+          ctx.fillStyle = `rgb(255,55,55)`
+          ctx.fillRect(i, (canvas.height - wallHeight)+500-(i), 1, wallHeight)
+
+
+          ctx.fillStyle = `rgb(55,255,55)`
+          ctx.fillRect(i+500, (canvas.height - wallHeight)-800, 1, wallHeight);
+
+          ctx.fillStyle = `rgb(55,${(shade*200)+50},${(shade*20)+50})`
+          ctx.fillRect(i+500, (canvas.height - wallHeight)-i, 1, wallHeight);
+
+          ctx.fillStyle = `rgb(${(shade*200)+100},55,${(shade*200)+100})`
+          ctx.fillRect(i+500, (canvas.height - wallHeight)+i-800, 1, wallHeight);
+
+          
+          ctx.globalAlpha = 1.0;
+
+
+        }
+        rayAngle =rayAngle + angleStep; // Move to the next ray angle whichi si ray angle plus canvas.width divide
+        //by 60 degrees field of view anglestep is a constant here.
+         if (performance.now() % 2000 < 16) {
+          console.log(wallHeight);
+        }
+        if(wallHeight>=600&&wallHeight<945){
+          speed=0;
+        }
+       
+        else{
+          speed=1;
+        }
+
+      }
+    }
+
+    function loop() {
+      updatePlayer();
+      castRays();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+    /**
+     * Simple OBJ loader (vertices only, no textures/normals)
+     * Usage: loadOBJ('path/to/model.obj').then(obj => { ... });
+     */
+    function loadOBJ(url) {
+      return fetch(url)
+      .then(res => res.text())
+      .then(text => {
+      const lines = text.split('\n');
+      const vertices = [];
+      const faces = [];
+      for (let line of lines) {
+        line = line.trim();
+        if (line.startsWith('v ')) {
+        const [, x, y, z] = line.split(/\s+/);
+        vertices.push([parseFloat(x), parseFloat(y), parseFloat(z)]);
+        } else if (line.startsWith('f ')) {
+        const [, ...faceVerts] = line.split(/\s+/);
+        faces.push(faceVerts.map(v => parseInt(v.split('/')[0], 10) - 1));
+        }
+      }
+      return { vertices, faces };
+      });
+    }
+
+    // 3D rotation around Y axis
+    function rotateY([x, y, z], angle) {
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      return [
+      x * cos - z * sin,
+      y,
+      x * sin + z * cos
+      ];
+    }
+
+    // Simple 3D to 2D projection with scale
+    function project([x, y, z], camera) {
+      // Camera: {x, y, z, angle}
+      // Simple perspective projection
+      const scale = 500 / (z - camera.z + 5); // +5 to avoid div by zero
+      const px = canvas.width / 2 + (x - camera.x) * scale;
+      const py = canvas.height / 2 - (y - camera.y) * scale;
+      return [px, py];
+    }
+
+    // Draw wireframe OBJ with rotation and scale
+    function drawOBJ(obj, camera, angle = 0, scaleFactor = 1) {
+      ctx.save();
+      ctx.strokeStyle = "lime";
+      for (const face of obj.faces) {
+      ctx.beginPath();
+      for (let i = 0; i < face.length; i++) {
+        let v1 = obj.vertices[face[i]];
+        // Scale
+        v1 = [v1[0] * scaleFactor, v1[1] * scaleFactor, v1[2] * scaleFactor];
+        // Rotate
+        v1 = rotateY(v1, angle);
+        const [x, y] = project(v1, camera);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // Animation: load multiple OBJ frames (enemy.obj, enemy2.obj, ...)
+    const enemyFrameCount = 3; // Change to your number of frames
+    const enemyObjs = [];
+    let enemyLoadedFrames = 0;
+    let enemyAnimFrame = 0;
+    let enemyAnimSpeed = 1; // frames per second
+
+    // Preload all frames
+    for (let i = 0; i < enemyFrameCount; i++) {
+      let name = i === 0 ? "enemy.obj" : `enemy${i+1}.obj`;
+      loadOBJ(name).then(obj => {
+      enemyObjs[i] = obj;
+      enemyLoadedFrames++;
+      });
+    }
+
+    // Animate cube rotation
+    let cubeAngle = 0;
+    let lastAnimTime = 0;
+
+    // Draw OBJ in the main loop (after castRays)
+    const oldCastRays = castRays;
+    castRays = function() {
+      oldCastRays();
+      if (enemyLoadedFrames === enemyFrameCount) {
+      // Animation frame update
+      let now = performance.now();
+      if (now - lastAnimTime > 1000 / enemyAnimSpeed) {
+        enemyAnimFrame = (enemyAnimFrame + 1) % enemyFrameCount;
+        lastAnimTime = now;
+      }
+      cubeAngle += 0.01;
+      // Camera at player.x, player.y, z=0, facing player.angle
+      drawOBJ(enemyObjs[enemyAnimFrame], {x: 0, y: 0, z: -200, angle: 0}, cubeAngle, 20);
+      }
+    };
+    //since you go pixel by pixel in ray casting you have to find teh center of the walls. then height and widthof the
+  </script>
+</body>
+</html>

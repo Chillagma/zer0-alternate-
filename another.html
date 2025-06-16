@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>title</title>
+</head>
+<body>
+ <canvas id="myCanvas"></canvas>  
+<script>
+    const map= [
+        [1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1]
+    ];
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.fillStyle='grey'
+    const fov  =Math.PI / 3;
+    const tileSize =64;
+    let player = { x:150, y:150, angle :0};
+    const keys = {};
+    document.addEventListener("keydown",e=>keys[e.key]=true);
+    document.addEventListener("keyup",e=>keys[e.key]=false);
+    
+    function gameLoop() {
+        let speed = 3;
+        if (keys['ArrowLeft']) player.angle -= 0.15;
+        if (keys['ArrowRight']) player.angle += 0.15;
+
+        if (keys['ArrowUp']) {
+            player.x += Math.cos(player.angle) * speed;
+            player.y += Math.sin(player.angle) * speed;
+        }
+
+        if (keys['ArrowDown']) {
+            player.x -= Math.cos(player.angle) * speed;
+            player.y -= Math.sin(player.angle) * speed;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Raycasting rendering
+        const numRays = canvas.width;
+        const angleStep = fov / numRays;
+        let rayAngle = player.angle - fov / 2;
+
+        for (let i = 0; i < numRays; i++) {
+            let sin = Math.sin(rayAngle);
+            let cos = Math.cos(rayAngle);
+            let dist = 0;
+            let hit = false;
+            let x = player.x;
+            let y = player.y;
+
+            // DDA raycasting
+            while (!hit && dist < 1000) {
+                //so it cycles through the map and determinse when it is hitting or
+                x += cos;
+                y += sin;
+                dist += 1;
+                let mapX = Math.floor(x / tileSize);
+                let mapY = Math.floor(y / tileSize);
+                if (
+                    mapY >= 0 && mapY < map.length &&
+                    mapX >= 0 && mapX < map[0].length &&
+                    map[mapY][mapX] === 1
+                ) {
+                    hit = true;
+                }
+            }
+
+            // Fix fish-eye effect
+
+            //between ray angle and player angle and multiplying the cos will adjust fish-ey effect.
+            let correctedDist = dist * Math.cos(rayAngle - player.angle);
+
+            let wallHeight = Math.min(50000 / correctedDist, canvas.height);
+
+            //i think this is the place where it is transformed.
+
+            //i gives correct collumn,  1 is wall slice perspective, wallheight isdistance taller or smaller .canva.height-wallheight/2 gives
+            ///what the center position is.
+
+            ctx.fillRect(i, (canvas.height-wallHeight )/2+50, 1, wallHeight+50);
+            //ctx.fillRect()
+            
+            rayAngle += angleStep;
+        }
+
+        requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
+   // ctx.fillRect(0, 0, canvas.width/2+player.x, canvas.height/2+player.y);
+
+</script>
+    
+</body>
+</html>
