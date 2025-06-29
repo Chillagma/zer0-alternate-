@@ -19,24 +19,30 @@
 
     // Map: 1 = wall, 0 = empty space
     const map = [
-      [1,1,1,1,1,1,1,1],
-      [1,0,0,0,0,0,0,1],
-      [1,0,0,1,0,1,0,1],
-      [1,0,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
     const tileSize = 64;
-    let player = { x: 150, y: 150, angle: 0 };
+    let player = { x: 150, y: 150, angle: 55 };
+    let player2= { x: 150, y: 150, angle: 0 };
+   
     const fov = Math.PI / 3;
-    var speed = 3 ;
+    var speed = 1 ;
     const keys = {};
     document.addEventListener("keydown", e => keys[e.key] = true);
     document.addEventListener("keyup", e => keys[e.key] = false);
 
     function updatePlayer() {
       
-      let speed_2 =3
+      let speed_2 =2
       let time = performance.now() / 1000;
       if (keys['a']){
 
@@ -53,10 +59,15 @@
 
         player.x += Math.cos(player.angle) * speed;
         player.y += Math.sin(player.angle) * speed ;
+        player2.x += Math.cos(player.angle) * speed;
+        player2.y += Math.sin(player.angle) * speed;
       }
       if (keys['s']) {
         player.x -= Math.cos(player.angle) * speed;
         player.y -= Math.sin(player.angle) * speed;
+        player2.x -= Math.cos(player.angle) * speed;
+        player2.y -= Math.sin(player.angle) * speed;
+
         // movement -= Math.cos(movement/45) *55;
       }
     }
@@ -143,25 +154,31 @@
         let dist = 0;
         // Check for wall collision
         let hit = false;
+        //let inceptionAngle = performance.now() * 2.5005; 
 
-        while (!hit && dist < 1000)
- {// Cast the ray
+        while (!hit && dist < 10000) {
+          // change 
+          // Cast the ray
           // Calculate the map coordinates based on player position and ray direction
           //inclement using dist instead of i basically.
-          dist +=0.25;
+          dist +=1;
           // Check if the ray hits a wall.so player x and y manipulate cos sine on the outside. 64 is constant. and dist is the
-          //distance that is looped through. this used through multiplication. so which location to multiply and add.
-          //an axample would be 150 +cosine(0-pi/3/2) *50*/64
-          let mapX = Math.floor((player.x + cos * dist) / tileSize);
-          let mapY = Math.floor((player.y + sin * dist) / tileSize);
-         
-          if (map[mapY]?.[mapX]) hit = true;
+            // Calculate map coordinates for both player perspectives
+            let mapX1 = Math.floor((player.x + cos * dist) / tileSize);
+            let mapY1 = Math.floor((player.y + sin * dist) / tileSize);
+
+           // let inceptionAngle = performance.now() * 2.5005;
+            let mapX2 = Math.floor((player2.x + cos * dist * Math.cos(player2.x / 60)) / tileSize);
+            let mapY2 = Math.floor((player2.y + sin * dist * Math.sin(player2.y / 60)) / tileSize);
+
+            // Combine both perspectives: hit if either sees a wall
+            if ((map[mapY1]?.[mapX1]) || (map[mapY2]?.[mapX2])) hit = true;
          // console.log("this is player.x", player.x, "this is player.y", player.y, "this is mapX", mapX, "this is mapY", mapY, "this is dist", dist);
        
         }
         
 
-        let wallHeight = Math.min(20000 / dist, canvas.height);
+        let wallHeight =  20000/dist;
         let shade = 255 - dist *1.5;
          // If it's a wall, set shade to 0
         ;
@@ -170,13 +187,15 @@
 
         //caste floor on all perspectives...
         if(true){
-
+          ///first 4 perspectives have depth...
 
           //(fourth perspective)
           var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
 
           var f_y2 =  wallHeight- (i / 25.5) +150;
           var o_y1=(canvas.height - wallHeight)/2
+
+          var i_offset =-(i/5.5);
           //fourth perspective 
           ctx.globalAlpha = 0.8;
           ctx.fillStyle = `rgb(0,0,${shade})`
@@ -191,12 +210,9 @@
 
         
          
+          
 
-
-          //second perspective 
-          ctx.fillStyle = `rgb(0,0,${250})`
-          ctx.fillRect(i, ((canvas.height - wallHeight)-100-(i/5.5)), 1, wallHeight);
-
+       
 
           //third perspective
           ctx.fillStyle = `rgb(${shade},${(shade*5)+250},55)`
@@ -209,6 +225,9 @@
 
 
    
+   //second perspective 
+          ctx.fillStyle = `rgb(110,110,250)`
+          ctx.fillRect(i , ( 400), 1, wallHeight);
 
 
 
@@ -266,7 +285,7 @@
 
           ctx.fillStyle = `rgb(${(shade*200)+100},55,${(shade*200)+100})`
           ctx.fillRect(i+500, (canvas.height - wallHeight)+i-800, 1, wallHeight);
-
+          
           
           ctx.globalAlpha = 1.0;
 
@@ -274,16 +293,16 @@
         }
         rayAngle =rayAngle + angleStep; // Move to the next ray angle whichi si ray angle plus canvas.width divide
         //by 60 degrees field of view anglestep is a constant here.
-         if (performance.now() % 2000 < 16) {
-          console.log(wallHeight);
-        }
-        if(wallHeight>=600&&wallHeight<945){
-          speed=0;
-        }
-       
-        else{
+        // Clamp player position to stay within map bounds
+        player.x = Math.max(tileSize, Math.min(player.x, (map[0].length - 1) * tileSize - 1));
+        player.y = Math.max(tileSize, Math.min(player.y, (map.length - 1) * tileSize - 1));
+        player2.x = Math.max(tileSize, Math.min(player2.x, (map[0].length - 1) * tileSize - 1));
+       player2.y = Math.max(tileSize, Math.min(player2.y, (map.length - 1) * tileSize - 1));
+       /* else{
+        
           speed=1;
-        }
+          console.log("this is player angle")
+        }*/
 
       }
     }
