@@ -18,7 +18,7 @@
     canvas.height = window.innerHeight;
 
     // Map: 1 = wall, 0 = empty space
-    const map = [
+    const map2 = [
       [1,1,1,1,1],
       [1,0,0,0,1],
       [1,0,2,0,1],
@@ -41,7 +41,7 @@
     
     };
 
-       const map2 = [
+       const map = [
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
@@ -266,11 +266,7 @@
 
           
 
-          var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
-
-          var f_y2 =  wallHeight- (i / 25.5) +150;
-          var o_y1=(canvas.height - wallHeight)/2
-          //first perspective
+         
           ctx.fillStyle = `rgb(255,0,0)`
             var rect_offset = 200
             var step = 30
@@ -304,19 +300,54 @@
             }
        //   ctx.fillRect(canvas.width-rect_offset,canvas.height-rect_offset, canvas.width+rect_offset, canvas.height+rect_offset);
           
+  ctx.fillStyle = `rgb(110,110,250)`
+  ///equations for a circle
+   var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
 
+          var f_y2 =  wallHeight- (i / 25.5) +150;
+          var o_y1=(canvas.height - wallHeight)/2
+          //first perspective
+          let radius = 800;
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            let angle = (i / canvas.width) * 2 * Math.PI;
+            let x1 = centerX + Math.cos(angle) * radius;
+            let y1 = centerY + Math.sin(angle) * radius;
+            ctx.fillRect(x1, y1, 2, 2);
           var i_offset =-(i/5.5);
+//equations for a spiral.
+            let spiralRadius = (10 + i * 0.5) * (200 / wallHeight);
+            let spiralAngle = angle + i * 0.02;
+            let spiralX = centerX + Math.cos(spiralAngle) * spiralRadius;
+            let spiralY = centerY + Math.sin(spiralAngle) * spiralRadius;
+           // ctx.fillRect(spiralX, spiralY, 1, wallHeight * 0.5); // wallHeight*0.5 for depth
+            //second parameter is the important one here.
+             ctx.globalAlpha = 1;
+            // Spiral logic for wall/floor effect
+            // Use spiralX, spiralY as base, but modulate with wallHeight and f_y1
+            let spiralWallX = spiralX;
+            let spiralWallY = spiralY + (f_y1 - centerY) * 0.5; // Offset by f_y1 for vertical effect
+            ctx.fillStyle = `rgb(0,0,${shade})`;
+           // ctx.fillRect(spiralWallX, spiralWallY, 2, wallHeight);
+
+          
+            
+
           //fourth perspective 
-          ctx.globalAlpha = 0.8;
+          ctx.globalAlpha = 0.8
           ctx.fillStyle = `rgb(0,0,${shade})`
           ctx.fillRect(i, f_y1, 1, wallHeight);
-          ctx.globalAlpha = 0.8;
+          ctx.globalAlpha = 0.8
           //caste floor(first perspective)
-          ctx.globalAlpha = 0.8;
+          ctx.globalAlpha = 0.8
 
           ctx.fillStyle = `rgb(${shade},${shade},255)`
           ctx.fillRect(i, o_y1, 1, (canvas.height+wallHeight)+500);
 
+               // wallHeight*0.5 for depth
+            //second parameter is the important one here.
+          //fourth perspective 
+           
 
         
          
@@ -336,8 +367,8 @@
 
    
    //second perspective 
-          ctx.fillStyle = `rgb(110,110,250)`
-          ctx.fillRect(i , ( 400), 1, wallHeight);
+            // Spiral effect with depth perception: spiral shrinks with distance (wallHeight)
+          
 
 
 
