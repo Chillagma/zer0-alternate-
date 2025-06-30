@@ -19,6 +19,29 @@
 
     // Map: 1 = wall, 0 = empty space
     const map = [
+      [1,1,1,1,1],
+      [1,0,0,0,1],
+      [1,0,2,0,1],
+      [1,0,0,0,1],
+      [1,1,1,1,1],
+    ];
+
+    // Load enemy image
+    const enemyImg = new Image();
+    enemyImg.src = "enemy.png";
+
+    enemyImg.onload = function() {
+      // Draw the enemy image at the center of the screen
+
+
+      // Draw the enemy image at the center of the screen
+      const x = (canvas.width - enemyImg.width) / 2;
+      const y = (canvas.height - enemyImg.height) / 2;
+      ctx.drawImage(enemyImg, x, y);
+    
+    };
+
+       const map2 = [
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
@@ -31,14 +54,21 @@
     ];
 
     const tileSize = 64;
+    const projectiles = [];
     let player = { x: 150, y: 150, angle: 55 };
     let player2= { x: 150, y: 150, angle: 0 };
    
     const fov = Math.PI / 3;
-    var speed = 1 ;
+    var speed = 2 ;
     const keys = {};
     document.addEventListener("keydown", e => keys[e.key] = true);
     document.addEventListener("keyup", e => keys[e.key] = false);
+      document.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    // Shoot a projectile
+  
+  }
+});
 
     function updatePlayer() {
       
@@ -70,18 +100,57 @@
 
         // movement -= Math.cos(movement/45) *55;
       }
+    
     }
     // Projectiles array
-    const projectiles = [];
+    //const projectiles = [];
 
     // Listen for spacebar to shoot
-    document.addEventListener("keydown", e => {
+    /*document.addEventListener("keydown", e => {
       if (e.code === "Space") {
         
       // Shoot a projectile from player position in facing direction
      
       }
-    });
+    });*/
+
+   /* function updateProjectiles() {
+  for (let proj of projectiles) {
+    if (!proj.alive) continue;
+    proj.x += Math.cos(proj.angle) * proj.speed;
+    proj.y += Math.sin(proj.angle) * proj.speed;
+
+    // Check collision with walls
+    let mapX = Math.floor(proj.x / tileSize);
+    let mapY = Math.floor(proj.y / tileSize);
+
+    if (map[mapY]?.[mapX]) {
+      proj.alive = false;
+    }
+  }
+}*/
+
+
+/*function drawProjectiles() {
+  ctx.fillStyle = "red";
+  for (let proj of projectiles) {
+    if (!proj.alive) continue;
+    
+    // Project onto screen like a simple raycast point
+    let dx = proj.x - player.x;
+    let dy = proj.y - player.y;
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    let angleToProj = Math.atan2(dy, dx) - player.angle;
+
+    if (Math.abs(angleToProj) < fov / 2) {
+      let screenX = (0.5 + angleToProj / fov) * canvas.width;
+      let size = Math.max(2, 200 / dist);
+      ctx.beginPath();
+      ctx.arc(screenX, canvas.height/2, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }*
+}*/
 /*
     function updateProjectiles() {
       for (let proj of projectiles) {
@@ -135,7 +204,9 @@
       castRays();
       requestAnimationFrame(loop);
     };*/
+    const originalCastRays = castRays;
     function castRays() {
+      
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       //the amount of rays to cast in width.
       //this for th efor loop to iterate through each ray.
@@ -164,15 +235,16 @@
           dist +=1;
           // Check if the ray hits a wall.so player x and y manipulate cos sine on the outside. 64 is constant. and dist is the
             // Calculate map coordinates for both player perspectives
-            let mapX1 = Math.floor((player.x + cos * dist) / tileSize);
-            let mapY1 = Math.floor((player.y + sin * dist) / tileSize);
+            var mapX1 = Math.floor((player.x + cos * dist) / tileSize);
+            var mapY1 = Math.floor((player.y + sin * dist) / tileSize);
 
-           // let inceptionAngle = performance.now() * 2.5005;
-            let mapX2 = Math.floor((player2.x + cos * dist * Math.cos(player2.x / 60)) / tileSize);
-            let mapY2 = Math.floor((player2.y + sin * dist * Math.sin(player2.y / 60)) / tileSize);
+             // let inceptionAngle = performance.now() * 2.5005;
+            var mapX2 = Math.floor((player2.x + cos * dist * Math.cos(player2.x / 60)) / tileSize);
+            var mapY2 = Math.floor((player2.y + sin * dist * Math.sin(player2.y / 60)) / tileSize);
 
-            // Combine both perspectives: hit if either sees a wall
-            if ((map[mapY1]?.[mapX1]) || (map[mapY2]?.[mapX2])) hit = true;
+            // Combine both perspectives: hit only if either sees a wall with value exactly 1
+            if ((map[mapY1]?.[mapX1] === 1) || (map[mapY2]?.[mapX2] === 1)) hit = true;
+             
          // console.log("this is player.x", player.x, "this is player.y", player.y, "this is mapX", mapX, "this is mapY", mapY, "this is dist", dist);
        
         }
@@ -190,10 +262,48 @@
           ///first 4 perspectives have depth...
 
           //(fourth perspective)
+
+
+          
+
           var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
 
           var f_y2 =  wallHeight- (i / 25.5) +150;
           var o_y1=(canvas.height - wallHeight)/2
+          //first perspective
+          ctx.fillStyle = `rgb(255,0,0)`
+            var rect_offset = 200
+            var step = 30
+            // If space is pressed, draw a yellow rectangle shrinking from bottom right to center
+            if (keys[' ']) {
+              const shrinkDuration = 150; // ms to fully shrink
+              if (!window.shrinkStart) window.shrinkStart = performance.now();
+              let elapsed = performance.now() - window.shrinkStart;
+              let shrink = Math.max(0, 1 - elapsed / shrinkDuration);
+
+              // Calculate map area in pixels
+              let mapWidth = map[0].length * tileSize;
+              let mapHeight = map.length * tileSize;
+              // Use the smaller dimension for scaling
+              let baseSize = Math.min(mapWidth, mapHeight) / 4;
+
+              let size = baseSize * shrink;
+              let w = canvas.width / 2, h = canvas.height / 2;
+              // Start at bottom right, move towards center as it shrinks
+              let startX = canvas.width - baseSize;
+              let startY = canvas.height - baseSize;
+              let targetX = w - size;
+              let targetY = h - size;
+              // Interpolate position from bottom right to center
+              var x = startX * shrink + targetX * (1 - shrink);
+              var y = startY * shrink + targetY * (1 - shrink);
+              ctx.fillStyle = "cyan";
+              ctx.fillRect(x, y, 22, 22);
+            } else {
+              window.shrinkStart = null;
+            }
+       //   ctx.fillRect(canvas.width-rect_offset,canvas.height-rect_offset, canvas.width+rect_offset, canvas.height+rect_offset);
+          
 
           var i_offset =-(i/5.5);
           //fourth perspective 
@@ -291,13 +401,15 @@
 
 
         }
+        
         rayAngle =rayAngle + angleStep; // Move to the next ray angle whichi si ray angle plus canvas.width divide
         //by 60 degrees field of view anglestep is a constant here.
         // Clamp player position to stay within map bounds
         player.x = Math.max(tileSize, Math.min(player.x, (map[0].length - 1) * tileSize - 1));
         player.y = Math.max(tileSize, Math.min(player.y, (map.length - 1) * tileSize - 1));
         player2.x = Math.max(tileSize, Math.min(player2.x, (map[0].length - 1) * tileSize - 1));
-       player2.y = Math.max(tileSize, Math.min(player2.y, (map.length - 1) * tileSize - 1));
+       player2.y = Math.max(tileSize, Math.min(player2.y, (map.length - 1) * tileSize - 1))
+   
        /* else{
         
           speed=1;
@@ -305,11 +417,21 @@
         }*/
 
       }
+      for (let i = 0; i < projectiles.length; i++) {
+  let p = projectiles[i];
+  p.x += p.dx;
+  p.y += p.dy;
+  ctx.fillStyle = "red";
+  ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+}//drawProjectiles();
     }
 
     function loop() {
+     // updateProjectiles();
       updatePlayer();
       castRays();
+      
+      //drawProjectiles();
       requestAnimationFrame(loop);
     }
 
@@ -416,6 +538,8 @@
       cubeAngle += 0.01;
       // Camera at player.x, player.y, z=0, facing player.angle
       drawOBJ(enemyObjs[enemyAnimFrame], {x: 0, y: 0, z: -200, angle: 0}, cubeAngle, 20);
+      
+      //map[mapY1]?.[mapX1]
       }
     };
     //since you go pixel by pixel in ray casting you have to find teh center of the walls. then height and widthof the
