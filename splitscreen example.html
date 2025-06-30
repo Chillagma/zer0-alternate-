@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple 3D FPS - Split Screen</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: black; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Map: 1 = wall, 0 = empty space
+    const map = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    ];
+
+    const tileSize = 64;
+    const fov = Math.PI / 3;
+    var speed = 2;
+    const keys = {};
+    document.addEventListener("keydown", e => keys[e.key] = true);
+    document.addEventListener("keyup", e => keys[e.key] = false);
+
+    // Player 1: WASD
+    let player1 = { x: 150, y: 150, angle: 0 };
+    // Player 2: Arrow keys
+    let player2 = { x: 250, y: 150, angle: 0 };
+
+    function updatePlayer(player, controls) {
+      if (keys[controls.left]) player.angle -= 0.05;
+      if (keys[controls.right]) player.angle += 0.05;
+      if (keys[controls.up]) {
+        player.x += Math.cos(player.angle) * speed;
+        player.y += Math.sin(player.angle) * speed;
+      }
+      if (keys[controls.down]) {
+        player.x -= Math.cos(player.angle) * speed;
+        player.y -= Math.sin(player.angle) * speed;
+      }
+      // Clamp to map
+      player.x = Math.max(tileSize, Math.min(player.x, (map[0].length - 1) * tileSize - 1));
+      player.y = Math.max(tileSize, Math.min(player.y, (map.length - 1) * tileSize - 1));
+    }
+
+    function castRays(player, viewX, viewY, viewW, viewH) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(viewX, viewY, viewW, viewH);
+      ctx.clip();
+
+      ctx.clearRect(viewX, viewY, viewW, viewH);
+
+      const numRays = viewW;
+      const angleStep = fov / numRays;
+      let rayAngle = player.angle - fov/2;
+
+      for (let i = 0; i < numRays; i++) {
+        let sin = Math.sin(rayAngle);
+        let cos = Math.cos(rayAngle);
+        let dist = 0;
+        let hit = false;
+        while (!hit && dist < 10000) {
+          dist += 1;
+          let mapX = Math.floor((player.x + cos * dist) / tileSize);
+          let mapY = Math.floor((player.y + sin * dist) / tileSize);
+          if (map[mapY]?.[mapX] === 1) hit = true;
+        }
+        let wallHeight = 20000 / dist;
+        let shade = 255 - dist * 1.5;
+        let x = viewX + i;
+        let y = viewY + (viewH - wallHeight) / 2;
+        ctx.fillStyle = `rgb(${shade},${shade},255)`;
+        ctx.fillRect(x, y, 1, wallHeight);
+        rayAngle += angleStep;
+      }
+      ctx.restore();
+    }
+
+    function loop() {
+      updatePlayer(player1, {left:'a', right:'d', up:'w', down:'s'});
+      updatePlayer(player2, {left:'ArrowLeft', right:'ArrowRight', up:'ArrowUp', down:'ArrowDown'});
+
+      // Top half: Player 1
+      castRays(player1, 0, 0, canvas.width, canvas.height/2);
+      // Bottom half: Player 2
+      castRays(player2, 0, canvas.height/2, canvas.width, canvas.height/2);
+
+      // Draw split line
+      ctx.save();
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height/2);
+      ctx.lineTo(canvas.width, canvas.height/2);
+      ctx.stroke();
+      ctx.restore();
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

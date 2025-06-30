@@ -362,7 +362,7 @@
 
             dist =dist ;
             check=false;
-player.angle=player.angle-0.00001
+          //player.angle=player.angle-0.00001
          // player.angle+=0.05
           //fourth perspective 
           ctx.globalAlpha = 0.05
@@ -502,9 +502,15 @@ player.angle=player.angle-0.00001
           check=true;
           dist =dist +1000;
           
-            player.angle=player.angle+0.00001
+           // player.angle=player.angle+0.00001
 
           //fourth perspective 
+          if (i === 0) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, 0, canvas.width/2, canvas.height);
+            ctx.clip();
+          }
           ctx.globalAlpha = 0.8
           ctx.fillStyle = `rgb(0,0,${shade})`
           ctx.fillRect(i, f_y1, 1, wallHeight);
@@ -602,11 +608,14 @@ player.angle=player.angle-0.00001
 
           ctx.fillStyle = `rgb(${(shade*200)+100},55,${(shade*200)+100})`
           ctx.fillRect(i+500, (canvas.height - wallHeight)+i-800, 1, wallHeight);
-          
-          
           ctx.globalAlpha = 1.0;
+          if (i === 200) {
+            ctx.restore();
+          }
 }
         }
+        
+        rayAngle =rayAngle + angleStep; // Move to the next ray angle whichi si ray angle plus canvas.width divide
         
         rayAngle =rayAngle + angleStep; // Move to the next ray angle whichi si ray angle plus canvas.width divide
         //by 60 degrees field of view anglestep is a constant here.
