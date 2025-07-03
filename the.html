@@ -66,10 +66,10 @@
     document.addEventListener("keydown", e => keys[e.key] = true);
     document.addEventListener("keyup", e => keys[e.key] = false);
       document.addEventListener("keydown", e => {
-  if (e.code === "Space") {
-    // Shoot a projectile
-  
-  }
+    if (e.code === "Space") {
+      // Shoot a projectile
+    
+    }
 });
 
     function updatePlayer() {
@@ -217,8 +217,23 @@
     };*/
     const originalCastRays = castRays;
     function castRays() {
+      ctx.save();
+      ctx.beginPath();
+      //ctx.rect(0,0,canvas.width/2,canvas.height);
+      ctx.rect(canvas.width/2,0,canvas.width,canvas.height);
+      ctx.clip();
+
+      //ctx.clearRect(0,0,canvas.width/2,canvas.height);
+      ctx.clearRect(canvas.width/2,0,canvas.width,canvas.height);
+
+
+
+
+
+
+
+
       
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
       //the amount of rays to cast in width.
       //this for th efor loop to iterate through each ray.
       const numRays = canvas.width;
@@ -476,6 +491,7 @@
   p.y += p.dy;
   ctx.fillStyle = "red";
   ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+  ctx.restore();
 }//drawProjectiles();
     }
 
@@ -513,7 +529,7 @@
       return { vertices, faces };
       });
     }
-
+    
     // 3D rotation around Y axis
     function rotateY([x, y, z], angle) {
       const cos = Math.cos(angle);
