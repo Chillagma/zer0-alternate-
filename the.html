@@ -10,6 +10,7 @@
 </head>
 <body>
   <canvas id="game"></canvas>
+  
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
@@ -72,6 +73,138 @@
     }
 });
 
+
+function handleProjectilesAndDraw() {
+  const minimapScale = 0.2;
+
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+
+    // Move bullet
+    p.x += p.dx;
+    p.y += p.dy;
+
+    // Check map collision
+    let mapX = Math.floor(p.x / tileSize);
+    let mapY = Math.floor(p.y / tileSize);
+    if (map[mapY]?.[mapX] === 1) {
+      projectiles.splice(i, 1); // Remove bullet on wall hit
+      continue;
+    }
+
+    // Draw on main view
+    ctx.fillStyle = "red";
+    ctx.fillRect(p.x / 4, p.y / 4, 4, 4); // adjust scaling if needed
+
+    // Draw on minimap
+    ctx.fillStyle = "orange";
+    ctx.fillRect(
+      10 + p.x * minimapScale - 2,
+      10 + p.y * minimapScale - 2,
+      4,
+      4
+    );
+  }
+}
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    projectiles.push({
+      x: player.x,
+      y: player.y,
+      dx: Math.cos(player.angle) * 5,
+      dy: Math.sin(player.angle) * 5
+    });
+  }
+});
+function drawMinimap() {
+  const minimapScale = 0.2; 
+  const minimapTileSize = tileSize * minimapScale;
+  const minimapWidth = map[0].length * minimapTileSize;
+  const minimapHeight = map.length * minimapTileSize;
+
+  // Draw minimap background
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillRect(10, 10, minimapWidth, minimapHeight);
+
+  // Draw map tiles
+  for (let y = 0; y < map.length; y++) {
+    for (let x = 0; x < map[0].length; x++) {
+      ctx.fillStyle = (map[y][x] === 1) ? "white" : "black";
+      ctx.fillRect(
+        10 + x * minimapTileSize,
+        10 + y * minimapTileSize,
+        minimapTileSize,
+        minimapTileSize
+      );
+    }
+  }
+
+  // Draw rays
+  const numRays = 30; // or use canvas.width for full density
+  const rayStep = fov / numRays;
+  let rayAngle = player.angle - fov / 2;
+  ctx.strokeStyle = "yellow";
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i < numRays; i++) {
+    let sin = Math.sin(rayAngle);
+    let cos = Math.cos(rayAngle);
+    let dist = 0;
+    let hitX = player.x;
+    let hitY = player.y;
+
+    while (dist < 10000) {
+      dist += 1;
+      let testX = Math.floor((player.x + cos * dist) / tileSize);
+      let testY = Math.floor((player.y + sin * dist) / tileSize);
+
+      if (map[testY]?.[testX] === 1) {
+        hitX = player.x + cos * dist;
+        hitY = player.y + sin * dist;
+        break;
+      }
+    }
+
+    // Draw ray on minimap
+    ctx.beginPath();
+    ctx.moveTo(
+      10 + player.x * minimapScale,
+      10 + player.y * minimapScale
+    );
+    ctx.lineTo(
+      10 + hitX * minimapScale,
+      10 + hitY * minimapScale
+    );
+    ctx.stroke();
+
+    rayAngle += rayStep;
+  }
+
+  // Draw player
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.arc(
+    10 + player.x * minimapScale,
+    10 + player.y * minimapScale,
+    5,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+
+  // Draw direction
+  ctx.strokeStyle = "red";
+  ctx.beginPath();
+  ctx.moveTo(
+    10 + player.x * minimapScale,
+    10 + player.y * minimapScale
+  );
+  ctx.lineTo(
+    10 + (player.x + Math.cos(player.angle) * 20) * minimapScale,
+    10 + (player.y + Math.sin(player.angle) * 20) * minimapScale
+  );
+  ctx.stroke();
+}
     function updatePlayer() {
       
       let speed_2 =2
@@ -113,118 +246,21 @@
       }
     
     }
-    // Projectiles array
-    //const projectiles = [];
-
-    // Listen for spacebar to shoot
-    /*document.addEventListener("keydown", e => {
-      if (e.code === "Space") {
-        
-      // Shoot a projectile from player position in facing direction
-     
-      }
-    });*/
-
-   /* function updateProjectiles() {
-  for (let proj of projectiles) {
-    if (!proj.alive) continue;
-    proj.x += Math.cos(proj.angle) * proj.speed;
-    proj.y += Math.sin(proj.angle) * proj.speed;
-
-    // Check collision with walls
-    let mapX = Math.floor(proj.x / tileSize);
-    let mapY = Math.floor(proj.y / tileSize);
-
-    if (map[mapY]?.[mapX]) {
-      proj.alive = false;
-    }
-  }
-}*/
-
-
-/*function drawProjectiles() {
-  ctx.fillStyle = "red";
-  for (let proj of projectiles) {
-    if (!proj.alive) continue;
-    
-    // Project onto screen like a simple raycast point
-    let dx = proj.x - player.x;
-    let dy = proj.y - player.y;
-    let dist = Math.sqrt(dx*dx + dy*dy);
-    let angleToProj = Math.atan2(dy, dx) - player.angle;
-
-    if (Math.abs(angleToProj) < fov / 2) {
-      let screenX = (0.5 + angleToProj / fov) * canvas.width;
-      let size = Math.max(2, 200 / dist);
-      ctx.beginPath();
-      ctx.arc(screenX, canvas.height/2, size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }*
-}*/
-/*
-    function updateProjectiles() {
-      for (let proj of projectiles) {
-      if (!proj.alive) continue;
-      // Move projectile
-      proj.x += Math.cos(proj.angle) * proj.speed;
-      proj.y += Math.sin(proj.angle) * proj.speed;
-      // Check collision with walls
-      let mapX = Math.floor(proj.x / tileSize);
-      let mapY = Math.floor(proj.y / tileSize);
-      if (map[mapY]?.[mapX]) {
-        proj.alive = false;
-      }
-      }
-    }
-
-    function drawProjectiles() {
-      ctx.save();
-      ctx.fillStyle = "red";
-      for (let proj of projectiles) {
-      if (!proj.alive) continue;
-      // Project projectile to screen (simple 3D projection)
-      let dx = proj.x - player.x;
-      let dy = proj.y - player.y;
-      let angleToProj = Math.atan2(dy, dx) - player.angle;
-      // Only draw if within FOV
-      if (Math.abs(angleToProj) < fov / 2) {
-        let dist = Math.sqrt(dx * dx + dy * dy);
-        let projScreenX = (0.5 + angleToProj / fov) * canvas.width;
-        let size = Math.max(2, 200 / dist);
-        ctx.beginPath();
-        ctx.arc(projScreenX, canvas.height / 2, size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      }
-      ctx.restore();
-    }
-
-    // Patch castRays to draw projectiles after walls
-    const oldCastRays = castRays;
-    castRays = function() {
-      oldCastRays();
-      drawProjectiles();
-    };
-
-    // Patch loop to update projectiles
-    const oldLoop = loop;
-    loop = function() {
-      updatePlayer();
-      updateProjectiles();
-      castRays();
-      requestAnimationFrame(loop);
-    };*/
+   
     const originalCastRays = castRays;
     function castRays() {
+      viewx=canvas.width/2;
+      viewy=0;
+      vieww=canvas.width
+      viewh=canvas.height;
       //ctx.save();
       ctx.beginPath();
       //ctx.rect(0,0,canvas.width/2,canvas.height);
       ctx.rect(canvas.width/2,0,canvas.width,canvas.height);
-      //ctx.clip();
+     // ctx.clip();
 
       //ctx.clearRect(0,0,canvas.width/2,canvas.height);
-      //ctx.clearRect(canvas.width/2,0,canvas.width,canvas.height);
+      ctx.clearRect(canvas.width/2,0,canvas.width,canvas.height);
 
 
 
@@ -261,17 +297,20 @@
           dist +=1;
           // Check if the ray hits a wall.so player x and y manipulate cos sine on the outside. 64 is constant. and dist is the
             // Calculate map coordinates for both player perspectives
+
+            
             var mapX1 = Math.floor((player.x + cos * dist) / tileSize);
             var mapY1 = Math.floor((player.y + sin * dist) / tileSize);
 
              // let inceptionAngle = performance.now() * 2.5005;
             var mapX2 = Math.floor((player2.x + cos * dist * Math.cos(player2.x / 60)) / tileSize);
             var mapY2 = Math.floor((player2.y + sin * dist * Math.sin(player2.y / 60)) / tileSize);
+           
 
-            var mapX3 = Math.floor((player_other.x + cos * dist * Math.cos(player_other.x / 60)) / tileSize);
+            var mapX3 = Math.floor((player_other.x+ + cos * dist * Math.cos(player_other.x / 60)) / tileSize);
             var mapY3 = Math.floor((player_other.y + sin * dist * Math.sin(player_other.y / 60)) / tileSize);
-            
 
+            
             // Combine both perspectives: hit only if either sees a wall with value exactly 1
             if ((map[mapY1]?.[mapX1] === 1) || (map[mapY2]?.[mapX2] === 1)) hit = true;
              
@@ -280,7 +319,9 @@
         }
         
 
-        let wallHeight =  20000/dist;
+        let wallHeight =  20000/dist 
+        //idea for spiral...
+        //let wallHeight =  20000/dist * Math.cos(player.x/500)*2;
         let shade = 255 - dist *1.5;
          // If it's a wall, set shade to 0
         ;
@@ -374,7 +415,7 @@
           ctx.globalAlpha = 0.8
 
           ctx.fillStyle = `rgb(${shade},${shade},255)`
-          ctx.fillRect(i, o_y1, 1, (canvas.height+wallHeight)+500);
+          ctx.fillRect(i, o_y1 , 1, (canvas.height+wallHeight)+500);
 
                // wallHeight*0.5 for depth
             //second parameter is the important one here.
@@ -389,7 +430,7 @@
 
           //third perspective
           ctx.fillStyle = `rgb(${shade},${(shade*5)+250},55)`
-          ctx.fillRect(i,(canvas.height - wallHeight)-100, 1, wallHeight);
+          ctx.fillRect(i+viewx,(canvas.height - wallHeight)-100, 1, wallHeight);
 
 
           //first perspective
@@ -612,6 +653,8 @@
       
       //map[mapY1]?.[mapX1]
       }
+      drawMinimap();
+      handleProjectilesAndDraw()
     };
     //since you go pixel by pixel in ray casting you have to find teh center of the walls. then height and widthof the
   </script>
