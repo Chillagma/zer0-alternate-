@@ -13,20 +13,16 @@
   <script src="map.js"></script>
   <script src="shooting.js"></script>
   <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+    var canvas = document.getElementById("game");
+    var ctx = canvas.getContext("2d");
     var movement = 0;
+      var count =0
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+   
 
-    // Map: 1 = wall, 0 = empty space
-    const map2 = [
-      [1,1,1,1,1],
-      [1,0,0,0,1],
-      [1,0,2,0,1],
-      [1,0,0,0,1],
-      [1,1,1,1,1],
-    ];
+
+   
 
     // Load enemy image
     const enemyImg = new Image();
@@ -115,6 +111,7 @@ document.addEventListener("keydown", e => {
       dx: Math.cos(player.angle) * 5,
       dy: Math.sin(player.angle) * 5
     });
+    count = 0;
   }
 });
 
@@ -171,7 +168,7 @@ document.addEventListener("keydown", e => {
       vieww=canvas.width
       viewh=canvas.height;
       //ctx.save();
-      ctx.beginPath();
+      
       //ctx.rect(0,0,canvas.width/2,canvas.height);
       ctx.rect(canvas.width/2,0,canvas.width,canvas.height);
      // ctx.clip();
@@ -325,12 +322,12 @@ document.addEventListener("keydown", e => {
             
           }
           //fourth perspective 
-          ctx.globalAlpha = 0.8
+          ctx.globalAlpha = 0.4
           ctx.fillStyle = `rgb(0,0,${shade})`
           ctx.fillRect(i, f_y1, 1, wallHeight);
-          ctx.globalAlpha = 0.8
+          ctx.globalAlpha = 0.4
           //caste floor(first perspective)
-          ctx.globalAlpha = 0.8
+          ctx.globalAlpha = 0.4
 
           ctx.fillStyle = `rgb(${shade},${shade},255)`
           ctx.fillRect(i, o_y1 , 1, (canvas.height+wallHeight)+500);
@@ -424,11 +421,11 @@ document.addEventListener("keydown", e => {
           ctx.fillRect(i+500, (canvas.height - wallHeight)+i-800, 1, wallHeight);
           
           
-          ctx.globalAlpha = 1.0;
+          ctx.globalAlpha = 0.5;
 
 
         }
-        
+        ctx.beginPath();
         rayAngle =rayAngle + angleStep; // Move to the next ray angle whichi si ray angle plus canvas.width divide
         //by 60 degrees field of view anglestep is a constant here.
         // Clamp player position to stay within map bounds
@@ -453,7 +450,7 @@ document.addEventListener("keydown", e => {
 
 }*///drawProjectiles();
 
-  ctx.restore()
+  //ctx.restore()
     }
 
     function loop() {
