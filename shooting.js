@@ -13,6 +13,9 @@ const duration = 5000;
 
     // Move bullet
     //multiply by 15 later...
+  //  p.x += p.dx*15;
+  //  p.y += p.dy*15;
+
     p.x += p.dx*15;
     p.y += p.dy*15;
   var canvas_center_x=945;
@@ -32,8 +35,8 @@ const duration = 5000;
    
 
 //think in 2d..
-count++;
-if (count < 50) {
+count+=20;
+if (count < 500) {
       if (map[mapY]?.[mapX] === 0) {
 
           //var mapX1 = Math.floor((player.x + cos * dist) / tileSize);
@@ -49,6 +52,14 @@ if (count < 50) {
        );*/
 
 
+      /*    ctx.fillRect(
+         Math.abs( canvas_center_x ),
+         Math.abs(canvas_center_y ),
+         Math.abs(500-count),
+         Math.abs(500-count)
+       );*/
+
+
        
   
        // Draw hit point
@@ -56,7 +67,7 @@ if (count < 50) {
     
 
 }
-    requestAnimationFrame(handleProjectilesAndDraw);
+   // requestAnimationFrame(handleProjectilesAndDraw);
   }
 
 
