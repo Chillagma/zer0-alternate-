@@ -13,6 +13,9 @@
   <script src="mini_map.js"></script>
   <script src="mini_map_shooting.js"></script>
    <script src="3d_object_loader.js"></script>
+   <script src="levels.js"></script>
+   <script src="shooting.js"></script>
+   <script src="player_movement.js"></script>
   <script>
     var canvas = document.getElementById("game");
     var ctx = canvas.getContext("2d");
@@ -87,47 +90,7 @@ document.addEventListener("keydown", e => {
   }
 });
 
-    function updatePlayer() {
-      
-      let speed_2 =2
-      let time = performance.now() / 1000;
-      if (keys['a']){
-
-        player.angle -= 0.05/speed_2;
-       //movement += Math.cos(movement/45) *55;
-      } 
-      if (keys['d']) {
-        player.angle += 0.05/speed_2;
-       // movement -= Math.cos(movement/45) *55;
-      }
-      
-      if (keys['w']) {
-      //  movement += Math.cos(movement/45) *55;
-
-        player.x += Math.cos(player.angle) * speed;
-        player.y += Math.sin(player.angle) * speed ;
-        player2.x += Math.cos(player.angle) * speed;
-        player2.y += Math.sin(player.angle) * speed;
-
-
-        player_other.x += Math.cos(player.angle) * speed;
-        player_other.y += Math.sin(player.angle) * speed;
-      }
-      if (keys['s']) {
-        player.x -= Math.cos(player.angle) * speed;
-        player.y -= Math.sin(player.angle) * speed;
-        player2.x -= Math.cos(player.angle) * speed;
-        player2.y -= Math.sin(player.angle) * speed;
-
-
-
-        player_other.x -= Math.cos(player.angle) * speed;
-        player_other.y -= Math.sin(player.angle) * speed;
-
-        // movement -= Math.cos(movement/45) *55;
-      }
     
-    }
 
 
 
@@ -212,9 +175,13 @@ document.addEventListener("keydown", e => {
         let shade = 255 - dist *1.5;
          // If it's a wall, set shade to 0
         ;
-        //when you replace with a constant number from i then it bounces when holding right or stretches when going back and forth.
-        //an example would be 500,400,1,400
+       
 
+
+
+
+
+ 
         //caste floor on all perspectives...
         if(true){
           ///first 4 perspectives have depth...
@@ -233,33 +200,9 @@ document.addEventListener("keydown", e => {
 
 
             //projectiles
-            if (keys[' ']) {
-              const shrinkDuration = 150; // ms to fully shrink
-              if (!window.shrinkStart) window.shrinkStart = performance.now();
-              let elapsed = performance.now() - window.shrinkStart;
-              let shrink = Math.max(0, 1 - elapsed / shrinkDuration);
-
-              // Calculate map area in pixels
-              let mapWidth = map[0].length * tileSize;
-              let mapHeight = map.length * tileSize;
-              // Use the smaller dimension for scaling
-              let baseSize = Math.min(mapWidth, mapHeight) / 4;
-
-              let size = baseSize * shrink;
-              let w = canvas.width / 2, h = canvas.height / 2;
-              // Start at bottom right, move towards center as it shrinks
-              let startX = canvas.width - baseSize;
-              let startY = canvas.height - baseSize;
-              let targetX = w - size;
-              let targetY = h - size;
-              // Interpolate position from bottom right to center
-              var x = startX * shrink + targetX * (1 - shrink);
-              var y = startY * shrink + targetY * (1 - shrink);
-              ctx.fillStyle = "cyan";
-              ctx.fillRect(x, y, 22, 22);
-            } else {
-              window.shrinkStart = null;
-            }
+          
+            shooting_projectiles();
+            
        //   ctx.fillRect(canvas.width-rect_offset,canvas.height-rect_offset, canvas.width+rect_offset, canvas.height+rect_offset);
           
   ctx.fillStyle = `rgb(110,110,250)`
@@ -269,27 +212,7 @@ document.addEventListener("keydown", e => {
           var f_y2 =  wallHeight- (i / 25.5) +150;
           var o_y1=(canvas.height - wallHeight)/2
           //circle perspective
-          let radius = 800;
-            let centerX = canvas.width / 2;
-            let centerY = canvas.height / 2;
-            let angle = (i / canvas.width) * 2 * Math.PI;
-            let x1 = centerX + Math.cos(angle) * radius;
-            let y1 = centerY + Math.sin(angle) * radius;
-            ctx.fillRect(x1, y1, 2, 2);
-          var i_offset =-(i/5.5);
-//equations for a spiral.
-            let spiralRadius = (10 + i * 0.5) * (200 / wallHeight);
-            let spiralAngle = angle + i * 0.02;
-            let spiralX = centerX + Math.cos(spiralAngle) * spiralRadius;
-            let spiralY = centerY + Math.sin(spiralAngle) * spiralRadius;
-           // ctx.fillRect(spiralX, spiralY, 1, wallHeight * 0.5); // wallHeight*0.5 for depth
-            //second parameter is the important one here.
-             ctx.globalAlpha = 1;
-            // Spiral logic for wall/floor effect
-            // Use spiralX, spiralY as base, but modulate with wallHeight and f_y1
-            let spiralWallX = spiralX;
-            let spiralWallY = spiralY + (f_y1 - centerY) * 0.5; // Offset by f_y1 for vertical effect
-            ctx.fillStyle = `rgb(0,0,${shade})`;
+
            // ctx.fillRect(spiralWallX, spiralWallY, 2, wallHeight);
 
           
@@ -336,7 +259,7 @@ document.addEventListener("keydown", e => {
 
    
    //second perspective 
-            // Spiral effect with depth perception: spiral shrinks with distance (wallHeight)
+            
           
 
 
@@ -409,7 +332,20 @@ document.addEventListener("keydown", e => {
         player.y = Math.max(tileSize, Math.min(player.y, (map.length - 1) * tileSize - 1));
         player2.x = Math.max(tileSize, Math.min(player2.x, (map[0].length - 1) * tileSize - 1));
        player2.y = Math.max(tileSize, Math.min(player2.y, (map.length - 1) * tileSize - 1))
-   
+
+
+
+
+
+
+   //spiral levels       
+         // drawCirclePoint(ctx, i, 200, canvas.width / 2, canvas.height / 2);
+
+          // Compute spiral position
+         // let { spiralX, spiralY } = computeSpiral(i, wallHeight, canvas.width / 2, canvas.height / 2);
+
+          // Draw spiral wall at computed spiral position
+          //drawSpiralWall(ctx, spiralX, spiralY, f_y1, canvas.height / 2, shade, wallHeight);
        /* else{
         
           speed=1;
@@ -417,16 +353,7 @@ document.addEventListener("keydown", e => {
         }*/
 
       }
-     /* for (let i = 0; i < projectiles.length; i++) {
-  let p = projectiles[i];
-  p.x += p.dx;
-  p.y += p.dy;
-  ctx.fillStyle = "red";
-  //ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
-
-}*///drawProjectiles();
-
-  //ctx.restore()
+   
     }
    
     const enemyAnimator = new OBJAnimator(
