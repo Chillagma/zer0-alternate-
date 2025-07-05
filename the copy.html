@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple 3D FPS</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: black; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <script src="mini_map.js"></script>
+  <script src="mini_map_shooting.js"></script>
+   <script src="3d_object_loader.js"></script>
+  <script>
+    var canvas = document.getElementById("game");
+    var ctx = canvas.getContext("2d");
+    var movement = 0;
+      var count =0
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+   
+
+
+   
+
+    // Load enemy image
+    const enemyImg = new Image();
+    enemyImg.src = "enemy.png";
+
+    enemyImg.onload = function() {
+      // Draw the enemy image at the center of the screen
+
+
+      // Draw the enemy image at the center of the screen
+      const x = (canvas.width - enemyImg.width) / 2;
+      const y = (canvas.height - enemyImg.height) / 2;
+      //ctx.drawImage(enemyImg, x, y);
+      //requestAnimationFrame(enemyImg.onload);
+      
+    
+    };
+
+       const map = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    ];
+
+    const tileSize = 64;
+    const projectiles = [];
+    let player = { x: 150, y: 150, angle: 0 };
+    let player2= { x: 150, y: 150, angle: 0 };
+
+    let player_other = { x: 250, y: 150, angle: 0 };
+   
+    const fov = Math.PI / 3;
+    var speed = 2 ;
+    const keys = {};
+    document.addEventListener("keydown", e => keys[e.key] = true);
+    document.addEventListener("keyup", e => keys[e.key] = false);
+      document.addEventListener("keydown", e => {
+    if (e.code === "Space") {
+      // Shoot a projectile
+    
+    }
+});
+
+
+
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    projectiles.push({
+      x: player.x,
+      y: player.y,
+      dx: Math.cos(player.angle) * 5,
+      dy: Math.sin(player.angle) * 5
+    });
+    count = 0;
+  }
+});
+
+    function updatePlayer() {
+      
+      let speed_2 =2
+      let time = performance.now() / 1000;
+      if (keys['a']){
+
+        player.angle -= 0.05/speed_2;
+       //movement += Math.cos(movement/45) *55;
+      } 
+      if (keys['d']) {
+        player.angle += 0.05/speed_2;
+       // movement -= Math.cos(movement/45) *55;
+      }
+      
+      if (keys['w']) {
+      //  movement += Math.cos(movement/45) *55;
+
+        player.x += Math.cos(player.angle) * speed;
+        player.y += Math.sin(player.angle) * speed ;
+        player2.x += Math.cos(player.angle) * speed;
+        player2.y += Math.sin(player.angle) * speed;
+
+
+        player_other.x += Math.cos(player.angle) * speed;
+        player_other.y += Math.sin(player.angle) * speed;
+      }
+      if (keys['s']) {
+        player.x -= Math.cos(player.angle) * speed;
+        player.y -= Math.sin(player.angle) * speed;
+        player2.x -= Math.cos(player.angle) * speed;
+        player2.y -= Math.sin(player.angle) * speed;
+
+
+
+        player_other.x -= Math.cos(player.angle) * speed;
+        player_other.y -= Math.sin(player.angle) * speed;
+
+        // movement -= Math.cos(movement/45) *55;
+      }
+    
+    }
+
+
+
+    //
+   
+    const originalCastRays = castRays;
+    function castRays() {
+      viewx=canvas.width/2;
+      viewy=0;
+      vieww=canvas.width
+      viewh=canvas.height;
+      //ctx.save();
+      
+      //ctx.rect(0,0,canvas.width/2,canvas.height);
+      ctx.rect(canvas.width/2,0,canvas.width,canvas.height);
+     // ctx.clip();
+
+      ctx.clearRect(0,0,canvas.width/2,canvas.height);
+     // ctx.clearRect(canvas.width/2,0,canvas.width,canvas.height);
+
+
+
+
+
+
+
+
+
+      //the amount of rays to cast in width.
+      //this for th efor loop to iterate through each ray.
+      const numRays = canvas.width;
+      //step angle for each ray based on the field of view.
+      //this iterates through the rays as well as i 
+      const angleStep = fov / numRays;
+      //starting angle for the first ray. so first would be 0-pi/3/2
+      let rayAngle = player.angle - fov/2;
+
+      for (let i = 0; i < numRays; i++) {
+        // Calculate the ray's direction
+        let sin = Math.sin(rayAngle);
+        let cos = Math.cos(rayAngle);
+        // Initialize distance and hit flag
+        let dist = 0;
+        // Check for wall collision
+        let hit = false;
+        //let inceptionAngle = performance.now() * 2.5005; 
+
+        while (!hit && dist < 10000) {
+          // change 
+          // Cast the ray
+          // Calculate the map coordinates based on player position and ray direction
+          //inclement using dist instead of i basically.
+          dist +=1;
+          // Check if the ray hits a wall.so player x and y manipulate cos sine on the outside. 64 is constant. and dist is the
+            // Calculate map coordinates for both player perspectives
+            
+
+            var mapX1 = Math.floor((player.x + cos * dist) / tileSize);
+            var mapY1 = Math.floor((player.y + sin * dist) / tileSize);
+
+             // let inceptionAngle = performance.now() * 2.5005;
+            var mapX2 = Math.floor((player2.x + cos * dist * Math.cos(player2.x / 60)) / tileSize);
+            var mapY2 = Math.floor((player2.y + sin * dist * Math.sin(player2.y / 60)) / tileSize);
+            
+           
+
+            var mapX3 = Math.floor((player_other.x+ + cos * dist * Math.cos(player_other.x / 60)) / tileSize);
+            var mapY3 = Math.floor((player_other.y + sin * dist * Math.sin(player_other.y / 60)) / tileSize);
+
+            
+            // Combine both perspectives: hit only if either sees a wall with value exactly 1
+            if ((map[mapY1]?.[mapX1] === 1) || (map[mapY2]?.[mapX2] === 1)) hit = true;
+             
+         // console.log("this is player.x", player.x, "this is player.y", player.y, "this is mapX", mapX, "this is mapY", mapY, "this is dist", dist);
+       
+        }
+        
+
+        let wallHeight =  20000/dist 
+        //idea for spiral...
+        //let wallHeight =  20000/dist * Math.cos(player.x/500)*2;
+        let shade = 255 - dist *1.5;
+         // If it's a wall, set shade to 0
+        ;
+        //when you replace with a constant number from i then it bounces when holding right or stretches when going back and forth.
+        //an example would be 500,400,1,400
+
+        //caste floor on all perspectives...
+        if(true){
+          ///first 4 perspectives have depth...
+
+          //(fourth perspective)
+
+
+          
+
+         
+          ctx.fillStyle = `rgb(255,0,0)`
+            var rect_offset = 200
+            var step = 30
+            // If space is pressed, draw a yellow rectangle shrinking from bottom right to center
+
+
+
+            //projectiles
+            if (keys[' ']) {
+              const shrinkDuration = 150; // ms to fully shrink
+              if (!window.shrinkStart) window.shrinkStart = performance.now();
+              let elapsed = performance.now() - window.shrinkStart;
+              let shrink = Math.max(0, 1 - elapsed / shrinkDuration);
+
+              // Calculate map area in pixels
+              let mapWidth = map[0].length * tileSize;
+              let mapHeight = map.length * tileSize;
+              // Use the smaller dimension for scaling
+              let baseSize = Math.min(mapWidth, mapHeight) / 4;
+
+              let size = baseSize * shrink;
+              let w = canvas.width / 2, h = canvas.height / 2;
+              // Start at bottom right, move towards center as it shrinks
+              let startX = canvas.width - baseSize;
+              let startY = canvas.height - baseSize;
+              let targetX = w - size;
+              let targetY = h - size;
+              // Interpolate position from bottom right to center
+              var x = startX * shrink + targetX * (1 - shrink);
+              var y = startY * shrink + targetY * (1 - shrink);
+              ctx.fillStyle = "cyan";
+              ctx.fillRect(x, y, 22, 22);
+            } else {
+              window.shrinkStart = null;
+            }
+       //   ctx.fillRect(canvas.width-rect_offset,canvas.height-rect_offset, canvas.width+rect_offset, canvas.height+rect_offset);
+          
+  ctx.fillStyle = `rgb(110,110,250)`
+  ///equations for a circle
+   var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
+
+          var f_y2 =  wallHeight- (i / 25.5) +150;
+          var o_y1=(canvas.height - wallHeight)/2
+          //circle perspective
+          let radius = 800;
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            let angle = (i / canvas.width) * 2 * Math.PI;
+            let x1 = centerX + Math.cos(angle) * radius;
+            let y1 = centerY + Math.sin(angle) * radius;
+            ctx.fillRect(x1, y1, 2, 2);
+          var i_offset =-(i/5.5);
+//equations for a spiral.
+            let spiralRadius = (10 + i * 0.5) * (200 / wallHeight);
+            let spiralAngle = angle + i * 0.02;
+            let spiralX = centerX + Math.cos(spiralAngle) * spiralRadius;
+            let spiralY = centerY + Math.sin(spiralAngle) * spiralRadius;
+           // ctx.fillRect(spiralX, spiralY, 1, wallHeight * 0.5); // wallHeight*0.5 for depth
+            //second parameter is the important one here.
+             ctx.globalAlpha = 1;
+            // Spiral logic for wall/floor effect
+            // Use spiralX, spiralY as base, but modulate with wallHeight and f_y1
+            let spiralWallX = spiralX;
+            let spiralWallY = spiralY + (f_y1 - centerY) * 0.5; // Offset by f_y1 for vertical effect
+            ctx.fillStyle = `rgb(0,0,${shade})`;
+           // ctx.fillRect(spiralWallX, spiralWallY, 2, wallHeight);
+
+          
+            
+          if(i<5){
+            
+          }
+          //fourth perspective 
+          ctx.globalAlpha = 0.4
+          ctx.fillStyle = `rgb(0,0,${shade})`
+          ctx.fillRect(i, f_y1, 1, wallHeight);
+          ctx.globalAlpha = 0.4
+          //caste floor(first perspective)
+          ctx.globalAlpha = 0.4
+
+          ctx.fillStyle = `rgb(${shade},${shade},255)`
+          ctx.fillRect(i, o_y1 , 1, (canvas.height+wallHeight)+500);
+
+               // wallHeight*0.5 for depth
+            //second parameter is the important one here.
+          //fourth perspective 
+           
+
+        
+         
+          
+
+       
+
+          //third perspective
+          ctx.fillStyle = `rgb(${shade},${(shade*5)+250},55)`
+          ctx.fillRect(i+viewx,(canvas.height - wallHeight)-100, 1, wallHeight);
+
+
+          //first perspective
+          ctx.fillStyle = `rgb(${shade},${shade/2},${shade})`
+
+          
+
+            ctx.fillRect(i+movement, o_y1, 1, wallHeight);
+          
+          
+
+
+   
+   //second perspective 
+            // Spiral effect with depth perception: spiral shrinks with distance (wallHeight)
+          
+
+
+
+
+
+
+
+
+
+          ctx.globalAlpha = 0.5;
+          //caste floor(first perspective)
+         
+         //5 perspective 
+          ctx.fillStyle = `rgb(0,0,${shade*2})`
+          ctx.fillRect(i,-1*( (canvas.height - wallHeight)-900-(i/5.5)), 1, wallHeight);
+          ctx.globalAlpha = 0.5;
+
+
+          //6 perspective
+          ctx.fillStyle = `rgb(${shade/2},${shade*2},55)`
+          ctx.fillRect(i,-1*((canvas.height - wallHeight)-900), 1, wallHeight);
+          ctx.globalAlpha = 0.5;
+
+
+          //7 perspective
+          ctx.fillStyle = `rgb(${shade/2},${shade*2},${shade})`
+          ctx.fillRect(i+movement, -1*o_y1 -900, 1, wallHeight);
+          ctx.globalAlpha = 0.5;
+
+
+          
+          
+
+
+
+
+            //randomize the shading with addd/subtacting/*multiplying random magic numbers.
+
+
+            
+          //extra perspectives
+          //xcross 1
+          ctx.fillStyle = `rgb(255,55,55)`
+          ctx.fillRect(i, (canvas.height - wallHeight)-500+(i), 1, wallHeight);
+          //xcross 2
+          ctx.fillStyle = `rgb(255,55,55)`
+          ctx.fillRect(i, (canvas.height - wallHeight)+500-(i), 1, wallHeight)
+
+
+          ctx.fillStyle = `rgb(55,255,55)`
+          ctx.fillRect(i+500, (canvas.height - wallHeight)-800, 1, wallHeight);
+
+          ctx.fillStyle = `rgb(55,${(shade*200)+50},${(shade*20)+50})`
+          ctx.fillRect(i+500, (canvas.height - wallHeight)-i, 1, wallHeight);
+
+          ctx.fillStyle = `rgb(${(shade*200)+100},55,${(shade*200)+100})`
+          ctx.fillRect(i+500, (canvas.height - wallHeight)+i-800, 1, wallHeight);
+          
+          
+          ctx.globalAlpha = 0.5;
+
+
+        }
+        ctx.beginPath();
+        rayAngle =rayAngle + angleStep; // Move to the next ray angle whichi si ray angle plus canvas.width divide
+        //by 60 degrees field of view anglestep is a constant here.
+        // Clamp player position to stay within map bounds
+        player.x = Math.max(tileSize, Math.min(player.x, (map[0].length - 1) * tileSize - 1));
+        player.y = Math.max(tileSize, Math.min(player.y, (map.length - 1) * tileSize - 1));
+        player2.x = Math.max(tileSize, Math.min(player2.x, (map[0].length - 1) * tileSize - 1));
+       player2.y = Math.max(tileSize, Math.min(player2.y, (map.length - 1) * tileSize - 1))
+   
+       /* else{
+        
+          speed=1;
+          console.log("this is player angle")
+        }*/
+
+      }
+     /* for (let i = 0; i < projectiles.length; i++) {
+  let p = projectiles[i];
+  p.x += p.dx;
+  p.y += p.dy;
+  ctx.fillStyle = "red";
+  //ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+
+}*///drawProjectiles();
+
+  //ctx.restore()
+    }
+   
+    const enemyAnimator = new OBJAnimator(
+  3,
+  i => i === 0 ? "enemy.obj" : `enemy${i+1}.obj`,
+  1,    // animSpeed
+  20,   // scaleFactor
+  -200  // cameraZ
+);
+
+    function loop() {
+     // updateProjectiles();
+      updatePlayer();
+      castRays();
+
+      enemyAnimator.draw(ctx);
+      //drawProjectiles();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+    /**
+     * Simple OBJ loader (vertices only, no textures/normals)
+     * Usage: loadOBJ('path/to/model.obj').then(obj => { ... });
+     */
+   
+
+
+ 
+    ;
+    //since you go pixel by pixel in ray casting you have to find teh center of the walls. then height and widthof the
+  </script>
+</body>
+</html>
