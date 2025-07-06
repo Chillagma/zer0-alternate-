@@ -61,45 +61,35 @@
 
     const tileSize = 64;
     const projectiles = [];
-    let player = { x: 150, y: 150, angle: 0 };
+    let player = { x: 150, y: 150, angle: 0,   fov: Math.PI / 3 };
     let player2= { x: 150, y: 150, angle: 0 };
 
-    let player_other = { x: 250, y: 150, angle: 0 };
+    let player_other = { x: 270, y: 150, angle: 20, fov: Math.PI *2 };
    
     const fov = Math.PI / 3;
     var speed = 2 ;
     const keys = {};
     document.addEventListener("keydown", e => keys[e.key] = true);
     document.addEventListener("keyup", e => keys[e.key] = false);
-      document.addEventListener("keydown", e => {
-    if (e.code === "Space") {
-      // Shoot a projectile
-    
-    }
-});
+     
 
 
-
-document.addEventListener("keydown", e => {
-  if (e.code === "Space") {
-    projectiles.push({
-      x: player.x,
-      y: player.y,
-      dx: Math.cos(player.angle) * 5,
-      dy: Math.sin(player.angle) * 5
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space") {
+        projectiles.push({
+          x: player.x,
+          y: player.y,
+          dx: Math.cos(player.angle) * 5,
+          dy: Math.sin(player.angle) * 5
+        });
+        count = 0;
+      }
     });
-    count = 0;
-  }
-});
 
-    
-
-
-
-    //
    
     const originalCastRays = castRays;
-    function castRays() {
+    
+    function castRays(player) {
       viewx=canvas.width/2;
       viewy=0;
       vieww=canvas.width
@@ -112,14 +102,6 @@ document.addEventListener("keydown", e => {
 
       ctx.clearRect(0,0,canvas.width/2,canvas.height);
      // ctx.clearRect(canvas.width/2,0,canvas.width,canvas.height);
-
-
-
-
-
-
-
-
 
       //the amount of rays to cast in width.
       //this for th efor loop to iterate through each ray.
@@ -141,35 +123,43 @@ document.addEventListener("keydown", e => {
         //let inceptionAngle = performance.now() * 2.5005; 
 
         while (!hit && dist < 10000) {
-          // change 
-          // Cast the ray
+          // Cast the ray using world distance
           // Calculate the map coordinates based on player position and ray direction
-          //inclement using dist instead of i basically.
-          dist +=1;
-          // Check if the ray hits a wall.so player x and y manipulate cos sine on the outside. 64 is constant. and dist is the
-            // Calculate map coordinates for both player perspectives
+          dist += 1; // World distance increment
+          
+          // Calculate world position of ray endpoint
+          var rayX = player.x + cos * dist;
+          var rayY = player.y + sin * dist;
+          
+          // Convert world position to map coordinates
+          var mapX1 = Math.floor(rayX / tileSize);
+          var mapY1 = Math.floor(rayY / tileSize);
+         
+         // console.log("this is mapX1", mapX1, "this is mapY1", mapY1);
+
+          // let inceptionAngle = performance.now() * 2.5005;
+          var mapX2 = Math.floor((player2.x + cos * dist * Math.cos(player2.x / 60)) / tileSize);
+          var mapY2 = Math.floor((player2.y + sin * dist * Math.sin(player2.y / 60)) / tileSize);
             
-
-            var mapX1 = Math.floor((player.x + cos * dist) / tileSize);
-            var mapY1 = Math.floor((player.y + sin * dist) / tileSize);
-
-             // let inceptionAngle = performance.now() * 2.5005;
-            var mapX2 = Math.floor((player2.x + cos * dist * Math.cos(player2.x / 60)) / tileSize);
-            var mapY2 = Math.floor((player2.y + sin * dist * Math.sin(player2.y / 60)) / tileSize);
+          /*if(map[mapY1][mapX1]=== 2){
+            //map[mapY1][mapX1] = 
             
            
 
-            //var mapX3 = Math.floor((player_other.x+ + cos * dist * Math.cos(player_other.x / 60)) / tileSize);
-            //var mapY3 = Math.floor((player_other.y + sin * dist * Math.sin(player_other.y / 60)) / tileSize);
+            //everytime ray is
+          }*/
 
+            //var mapX3 = Math.floor((player_other.x*0+ + cos * dist * Math.cos(player_other.x*0 / 60)) / tileSize);
+            //var mapY3 = Math.floor((player_other.y*0 + sin * dist * Math.sin(player_other.y*0 / 60)) / tileSize);
+            //an idea is to assign a value to mapy1 and mapx1 equal to 2
             
             // Combine both perspectives: hit only if either sees a wall with value exactly 1
-            if ((map[mapY1]?.[mapX1] === 1) || (map[mapY2]?.[mapX2] === 1)|| (map[mapY1]?.[mapX2] === 2)) hit = true;
+            if ((map[mapY1]?.[mapX1] === 1) || (map[mapY2]?.[mapX2] === 1)|| (map[mapY1]?.[mapX1] === 2)) hit = true;
              
          // console.log("this is player.x", player.x, "this is player.y", player.y, "this is mapX", mapX, "this is mapY", mapY, "this is dist", dist);
        
         }
-        
+
 
         let wallHeight =  20000/dist 
         //idea for spiral...
@@ -177,7 +167,6 @@ document.addEventListener("keydown", e => {
         let shade = 255 - dist *1.5;
          // If it's a wall, set shade to 0
         ;
-       
 
 
           var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
@@ -192,12 +181,6 @@ document.addEventListener("keydown", e => {
 
           //(fourth perspective)
 
-
-          
-
-         
-         
-
         }
         ctx.beginPath();
         rayAngle =rayAngle + angleStep; // Move to the next ray angle whichi si ray angle plus canvas.width divide
@@ -206,31 +189,68 @@ document.addEventListener("keydown", e => {
         player.x = Math.max(tileSize, Math.min(player.x, (map[0].length - 1) * tileSize - 1));
         player.y = Math.max(tileSize, Math.min(player.y, (map.length - 1) * tileSize - 1));
         player2.x = Math.max(tileSize, Math.min(player2.x, (map[0].length - 1) * tileSize - 1));
-       player2.y = Math.max(tileSize, Math.min(player2.y, (map.length - 1) * tileSize - 1))
+        player2.y = Math.max(tileSize, Math.min(player2.y, (map.length - 1) * tileSize - 1));
 
 
-
-
-
-
-   //spiral levels       
-         // drawCirclePoint(ctx, i, 200, canvas.width / 2, canvas.height / 2);
+          //spiral levels       
+          // drawCirclePoint(ctx, i, 200, canvas.width / 2, canvas.height / 2);
 
           // Compute spiral position
-         // let { spiralX, spiralY } = computeSpiral(i, wallHeight, canvas.width / 2, canvas.height / 2);
+          // let { spiralX, spiralY } = computeSpiral(i, wallHeight, canvas.width / 2, canvas.height / 2);
 
           // Draw spiral wall at computed spiral position
           //drawSpiralWall(ctx, spiralX, spiralY, f_y1, canvas.height / 2, shade, wallHeight);
-       /* else{
+          /* else{
         
           speed=1;
           console.log("this is player angle")
-        }*/
+          }*/
 
       }
-   
+      //       drawMinimap(player_other);
+       drawMinimap(player);
+       drawMinimap(player2);
+       
+       // Ray cast for player_other
+       /*const numRaysOther = 30;
+       const rayStepOther = fov / numRaysOther;
+       let rayAngleOther = player_other.angle - fov / 2;*/
+       
+       /*for (let i = 0; i < numRaysOther; i++) {
+         let sin = Math.sin(rayAngleOther);
+         let cos = Math.cos(rayAngleOther);
+         let dist = 0;
+         let hit = false;
+         
+         while (!hit && dist < 10000) {
+           dist += 1;
+           let testX = Math.round((player_other.x + cos * dist) / tileSize);
+           let testY = Math.round((player_other.y + sin * dist) / tileSize);
+
+           let otherPlayerTileX = Math.floor(player_other.x / tileSize);
+           let otherPlayerTileY = Math.floor(player_other.y / tileSize);
+
+           if (mapY1 == testX && mapY1 == testY) {
+             hit = true;
+           }
+         }
+         
+         // Calculate wall properties for player_other
+         let wallHeight = 20000/dist;
+         let shade = 255 - dist * 1.5;
+         
+         // Render wall segment for player_other
+         var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
+         var o_y1 = (canvas.height - wallHeight)/2;
+         if(hit){
+          ctx.fillRect(i, 1, 10, wallHeight);
+         }
+
+         rayAngleOther += rayStepOther;
+       }*/
+       
     }
-   
+  
     const enemyAnimator = new OBJAnimator(
   3,
   i => i === 0 ? "enemy.obj" : `enemy${i+1}.obj`,
@@ -242,7 +262,9 @@ document.addEventListener("keydown", e => {
     function loop() {
      // updateProjectiles();
       updatePlayer();
-      castRays();
+      castRays(player);
+     // castRays(player2);
+      
 
       enemyAnimator.draw(ctx);
       //drawProjectiles();

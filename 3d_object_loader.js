@@ -92,7 +92,7 @@
       ctx.stroke();
     }
     ctx.restore();
-      drawMinimap();
+      
       handleProjectilesAndDraw()
    }
    }

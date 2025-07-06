@@ -1,4 +1,4 @@
-function drawMinimap() {
+function drawMinimap(player) {
   const minimapScale = 0.2; 
   const minimapTileSize = tileSize * minimapScale;
   const minimapWidth = map[0].length * minimapTileSize;
@@ -28,7 +28,7 @@ function drawMinimap() {
   }
 }
 
-  // Draw rays
+  // Draw rays for player
   const numRays = 30; // or use canvas.width for full density
   const rayStep = fov / numRays;
   let rayAngle = player.angle - fov / 2;
@@ -47,7 +47,7 @@ function drawMinimap() {
       let testX = Math.floor((player.x + cos * dist) / tileSize);
       let testY = Math.floor((player.y + sin * dist) / tileSize);
 
-      if (map[testY]?.[testX] === 1) {
+      if (map[testY]?.[testX] === 1 || map[testY]?.[testX] === 2) {
         hitX = player.x + cos * dist;
         hitY = player.y + sin * dist;
         break;
