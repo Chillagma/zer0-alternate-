@@ -1,0 +1,23 @@
+{
+  "name": "raycast",
+  "version": "1.0.0",
+  "description": "you might need to download Visual Studio Code extension \"live server\" if you are using Visual Studio Code to use it.",
+  "main": "3d_object_loader.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chillagma/zer0-alternate-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Chillagma/zer0-alternate-/issues"
+  },
+  "homepage": "https://github.com/Chillagma/zer0-alternate-#readme",
+  "dependencies": {
+    "socket.io": "^4.8.1"
+  }
+}
