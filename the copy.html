@@ -18,8 +18,16 @@
    <script src="player_movement.js"></script>
    <script src="art_style.js"></script>
     <script src="online_multiplayer.js"></script>
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script>
+  const socket = io("http://localhost:3000");
+
+  socket.on("connect", () => {
+    console.log("Connected to multiplayer server!");
+  });
+</script>
   
-  <script>
+  <script >
     var canvas = document.getElementById("game");
     var ctx = canvas.getContext("2d");
     var movement = 0;
