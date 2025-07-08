@@ -1,27 +1,23 @@
-const { Server } = require("socket.io");
-const io = new Server(3000);
+const express = require("express");
+const http = require("http");
+const socketIo = require("socket.io");
 
-let players = {};
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
 
+// Serve your HTML and JS files
+app.use(express.static(__dirname));
+
+// Handle socket.io connections
 io.on("connection", (socket) => {
-  console.log("New player connected:", socket.id);
-
-  players[socket.id] = { x: 100, y: 100 };
-
-  socket.emit("currentPlayers", players);
-  socket.broadcast.emit("newPlayer", { id: socket.id, x: 100, y: 100 });
-
-  socket.on("playerMovement", (movementData) => {
-    players[socket.id].x = movementData.x;
-    players[socket.id].y = movementData.y;
-    socket.broadcast.emit("playerMoved", { id: socket.id, x: movementData.x, y: movementData.y });
-  });
+  console.log("New client connected:", socket.id);
 
   socket.on("disconnect", () => {
-    console.log("Player disconnected:", socket.id);
-    delete players[socket.id];
-    io.emit("playerDisconnected", socket.id);
+    console.log("Client disconnected:", socket.id);
   });
 });
 
-console.log("Server started on port 3000");
+server.listen(3000, () => {
+  console.log("Server running at http://localhost:3000");
+});
