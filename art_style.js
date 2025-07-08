@@ -38,7 +38,7 @@
 
           //first perspective
           ctx.fillStyle = `rgb(${shade},${shade/2},${shade})`
-          ctx.fillRect(i+movement, o_y1, 1, wallHeight);
+          ctx.fillRect(i, o_y1, 1, wallHeight);
 
    
           //second perspective 

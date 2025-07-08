@@ -52,6 +52,10 @@ function drawMinimap(player) {
         hitY = player.y + sin * dist;
         break;
       }
+      if(player==player_other){
+      //  map[testY][testX] = 2; // Clear the tile if player_other hits it
+
+      }
     }
 
     // Draw ray on minimap

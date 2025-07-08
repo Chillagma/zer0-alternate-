@@ -60,11 +60,16 @@
     ];
 
     const tileSize = 64;
+   
     const projectiles = [];
     let player = { x: 150, y: 150, angle: 0,   fov: Math.PI / 3 };
     let player2= { x: 150, y: 150, angle: 0 };
 
-    let player_other = { x: 270, y: 150, angle: 20, fov: Math.PI *2 };
+    let player_other = { x: 300, y: 350, angle: 20, fov: Math.PI *2 };
+
+
+    let prevPlayerTileX = Math.floor(player_other.x / tileSize);
+    let prevPlayerTileY = Math.floor(player_other.y / tileSize);
    
     const fov = Math.PI / 3;
     var speed = 2 ;
@@ -72,6 +77,38 @@
     document.addEventListener("keydown", e => keys[e.key] = true);
     document.addEventListener("keyup", e => keys[e.key] = false);
      
+let aiAngle = 0;
+let aiTimer = 0;
+
+ 
+function updateAIPlayer(dt) {
+  aiTimer -= dt;
+  if (aiTimer <= 0) {
+    // Pick a new random direction every few seconds
+    aiAngle = Math.random() * Math.PI * 2;
+    aiTimer = 1 + Math.random() * 2; // Wander every 1–3 seconds
+  }
+
+  const aiSpeed = 0.75;
+
+  // Move in current direction
+  const nextX = player_other.x + Math.cos(aiAngle) * aiSpeed;
+  const nextY = player_other.y + Math.sin(aiAngle) * aiSpeed;
+
+  // Convert to map grid
+  const mapX = Math.floor(nextX / tileSize);
+  const mapY = Math.floor(nextY / tileSize);
+
+  // If next tile is walkable (0), move
+  if (map[mapY]?.[mapX] == 0|| map[mapY]?.[mapX] == 1|| map[mapY]?.[mapX] == 2) {
+    player_other.x = nextX;
+    player_other.y = nextY;
+  } else {
+    // Hit a wall — bounce in a new direction
+    aiAngle += Math.PI / 2 + Math.random() * Math.PI;
+    aiTimer = 0.5;
+  }
+}
 
 
     document.addEventListener("keydown", e => {
@@ -105,6 +142,7 @@
 
       //the amount of rays to cast in width.
       //this for th efor loop to iterate through each ray.
+      
       const numRays = canvas.width;
       //step angle for each ray based on the field of view.
       //this iterates through the rays as well as i 
@@ -113,6 +151,7 @@
       let rayAngle = player.angle - fov/2;
 
       for (let i = 0; i < numRays; i++) {
+         
         // Calculate the ray's direction
         let sin = Math.sin(rayAngle);
         let cos = Math.cos(rayAngle);
@@ -120,6 +159,7 @@
         let dist = 0;
         // Check for wall collision
         let hit = false;
+         var pic_dist = 0;
         //let inceptionAngle = performance.now() * 2.5005; 
 
         while (!hit && dist < 10000) {
@@ -135,6 +175,7 @@
           var mapX1 = Math.floor(rayX / tileSize);
           var mapY1 = Math.floor(rayY / tileSize);
          
+
          // console.log("this is mapX1", mapX1, "this is mapY1", mapY1);
 
           // let inceptionAngle = performance.now() * 2.5005;
@@ -149,12 +190,72 @@
             //everytime ray is
           }*/
 
-            //var mapX3 = Math.floor((player_other.x*0+ + cos * dist * Math.cos(player_other.x*0 / 60)) / tileSize);
-            //var mapY3 = Math.floor((player_other.y*0 + sin * dist * Math.sin(player_other.y*0 / 60)) / tileSize);
+            var mapX3 = Math.floor((player_other.x + cos * dist) / tileSize);
+            var mapY3 = Math.floor((player_other.y + sin * dist ) / tileSize);
             //an idea is to assign a value to mapy1 and mapx1 equal to 2
             
+
+
+
+            //change this. 2 differnt if statement than//player other is bound by the map..
             // Combine both perspectives: hit only if either sees a wall with value exactly 1
-            if ((map[mapY1]?.[mapX1] === 1) || (map[mapY2]?.[mapX2] === 1)|| (map[mapY1]?.[mapX1] === 2)) hit = true;
+            if ((map[mapY1]?.[mapX1] === 1) || (map[mapY2]?.[mapX2] === 1)){
+              hit = true;
+            } 
+            if((map[mapY1]?.[mapX1] === 2)&&dist<100){
+          const wallHeight = 20000 / dist;
+          i+=3
+          let imageDrawn = false;
+                    // you already compute this
+if (!imageDrawn && map[mapY1][mapX1] === 2) {
+  imageDrawn = true;
+
+  const spriteDist = dist;
+  const spriteScale = 30000 / spriteDist;
+  const spriteAspect = enemyImg.width / enemyImg.height;
+
+  const spriteHeight = spriteScale;
+  const spriteWidth = spriteScale * spriteAspect;
+
+  // 🧠 Project the tile position of player_other into screen space
+  const dx = player_other.x - player.x;
+  const dy = player_other.y - player.y;
+
+  const angleToSprite = Math.atan2(dy, dx) - player.angle;
+
+  // Clamp angle to [-PI, PI]
+  let relativeAngle = angleToSprite;
+  while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
+  while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
+
+  // If sprite is outside of FOV, skip
+  const halfFOV = player.fov / 2;
+  if (Math.abs(relativeAngle) < halfFOV) {
+    const screenX = (relativeAngle + halfFOV) / player.fov * canvas.width;
+
+    const screenY = (canvas.height - spriteHeight) / 2;
+
+    ctx.drawImage(
+      enemyImg,
+      0, 0, enemyImg.width, enemyImg.height,
+      screenX - spriteWidth / 2, screenY,  // center the image
+      spriteWidth, spriteHeight
+    );
+  }
+}
+          /*
+      &&i%22==0
+ctx.drawImage(
+  enemyImg,
+  mapX3 * tileSize,            // dx
+  mapY3 * tileSize,            // dy
+  (enemyImg.width/1.5 / dist) * 15, // dWidth
+  (enemyImg.height / dist) * 15 // dHeight
+);          */    
+            }
+             
+          //introduce range here for the ray casting.
+      
              
          // console.log("this is player.x", player.x, "this is player.y", player.y, "this is mapX", mapX, "this is mapY", mapY, "this is dist", dist);
        
@@ -162,17 +263,37 @@
 
 
         let wallHeight =  20000/dist 
+
+
+// After you update mapX1 and mapY1 to new position
+
+      
+      
+        
+        /*if(i%1.25==0&&mapX1==mapX3&&mapY1==mapY3){
+          //ctx.fillRect(i, o_y1 , 1, (canvas.height+wallHeight)+500);
+          ///maybe drwa multiple an
+           /* ctx.drawImage(
+            enemyImg,
+            0, 0, enemyImg.width, enemyImg.height,  // full image
+            i, o_y1, 1*500, (canvas.height+wallHeight)+500  // draw 1-px wide slice scaled
+          );
+         
+
+        //  ctx.drawImage(enemyImg,0, 0, enemyImg.width, enemyImg.height, 55, 55, 1*500+mapY1*50, mapX1*50+(canvas.height)+500 );
+        }*/
+        
+        //const textureX = Math.floor(hitX * enemyImg.width);
+          // hitX = 0..1 where on tile
+         
         //idea for spiral...
         //let wallHeight =  20000/dist * Math.cos(player.x/500)*2;
         let shade = 255 - dist *1.5;
          // If it's a wall, set shade to 0
-        ;
-
-
-          var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
-          var f_y2 =  wallHeight- (i / 25.5) +150;
-          var o_y1=(canvas.height - wallHeight)/2
-          art(wallHeight,shade,movement,i,f_y1,o_y1);
+        var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
+        var f_y2 =  wallHeight- (i / 25.5) +150;
+        var o_y1=(canvas.height - wallHeight)/2
+        art(wallHeight,shade,movement,i,f_y1,o_y1);
 
  
         //caste floor on all perspectives...
@@ -192,6 +313,10 @@
         player2.y = Math.max(tileSize, Math.min(player2.y, (map.length - 1) * tileSize - 1));
 
 
+        player_other.x = Math.max(tileSize, Math.min(player_other.x, (map[0].length - 1) * tileSize - 1));
+        player_other.y = Math.max(tileSize, Math.min(player_other.y, (map.length - 1) * tileSize - 1));
+
+
           //spiral levels       
           // drawCirclePoint(ctx, i, 200, canvas.width / 2, canvas.height / 2);
 
@@ -206,10 +331,37 @@
           console.log("this is player angle")
           }*/
 
+          
+         
+        /*if(mapX3 ===mapX1&&mapY3 ===mapY1) {
+                hit = true;
+                
+                
+            }*/
+
+
+//tile is relattive to player_other.x/player_other.y
+let currTileX = Math.floor(player_other.x / tileSize);
+let currTileY = Math.floor(player_other.y / tileSize);
+
+// Only update if player stepped onto a new tile
+if ((currTileX !== prevPlayerTileX || currTileY !== prevPlayerTileY) && map[currTileY]?.[currTileX] === 0) {
+  // Set old tile to 0
+  map[prevPlayerTileY][prevPlayerTileX] = 0;
+
+  // Set current tile to 2
+  map[currTileY][currTileX] = 2;
+
+  // Save new position as previous for next frame
+  prevPlayerTileX = currTileX;
+  prevPlayerTileY = currTileY;
+}
+
       }
+     
       //       drawMinimap(player_other);
        drawMinimap(player);
-       drawMinimap(player2);
+       drawMinimap(player_other);
        
        // Ray cast for player_other
        /*const numRaysOther = 30;
@@ -260,12 +412,15 @@
 );
 
     function loop() {
+      const now = performance.now();
+let lastTime = now;
+  const dt = (now - lastTime) / 1000;
      // updateProjectiles();
       updatePlayer();
       castRays(player);
      // castRays(player2);
       
-
+updateAIPlayer(dt);
       enemyAnimator.draw(ctx);
       //drawProjectiles();
       requestAnimationFrame(loop);

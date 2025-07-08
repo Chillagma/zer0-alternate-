@@ -16,16 +16,16 @@ function updatePlayer() {
         player.y += Math.sin(player.angle) * speed ;
         player2.x += Math.cos(player.angle) * speed;
         player2.y += Math.sin(player.angle) * speed;
-       // player_other.x += Math.cos(player.angle) * speed;
-       // player_other.y += Math.sin(player.angle) * speed;
+     //   player_other.x += Math.cos(player.angle) * speed;
+     // player_other.y += Math.sin(player.angle) * speed;
       }
       if (keys['s']) {
         player.x -= Math.cos(player.angle) * speed;
         player.y -= Math.sin(player.angle) * speed;
         player2.x -= Math.cos(player.angle) * speed;
         player2.y -= Math.sin(player.angle) * speed;
-       // player_other.x -= Math.cos(player.angle) * speed;
-       // player_other.y -= Math.sin(player.angle) * speed;
+      //  player_other.x -= Math.cos(player.angle) * speed;
+    // player_other.y -= Math.sin(player.angle) * speed;
       // movement -= Math.cos(movement/45) *55;
       }
     
