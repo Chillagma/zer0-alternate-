@@ -1,4 +1,6 @@
 function updatePlayer() {
+
+  
       let speed_2 =2
       let time = performance.now() / 1000;
       if (keys['a']){
@@ -26,9 +28,11 @@ function updatePlayer() {
         player2.y -= Math.sin(player.angle) * speed;
       //  player_other.x -= Math.cos(player.angle) * speed;
     // player_other.y -= Math.sin(player.angle) * speed;
-      // movement -= Math.cos(movement/45) *55;
-      }
-    
-      
+      // movement -= Math.cos(mov      // Emit updated player  
+         
     }
-    updatePlayer();
+    if (window.socket) {
+      window.socket.emit('player_update', { x: player.x, y: player.y, z: player.z || 0, angle: player.angle });
+    }
+  }
+   // //datePlayer();

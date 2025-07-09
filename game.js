@@ -48,7 +48,20 @@ let aiTimer = 0;
 // For AI shooting
 let aiShootTimer = 0;
 const aiProjectiles = [];
+var distance=Math.sqrt((player_other.x-player.x)*(player_other.x-player.x)+(player_other.y-player.y)*(player_other.y-player.y));
+function math_testing(){
+  //setInterval(math_testing,5000);
+  /*
+  console.log("this is player_other.x: " + player_other.x);
+  console.log("this is player_other.y: " + player_other.y);
+console.log("this is player.x: " + player.x);
+console.log("this is player.y: " + player.y) 
+console.log("this is distance"+distance);
+//return distance;*/
 
+
+}
+//ai movement
 function updateAIPlayer(dt) {
   aiTimer -= dt;
   aiShootTimer -= dt;
@@ -103,16 +116,18 @@ function castRays(player) {
   viewh=canvas.height;
   ctx.rect(canvas.width/2,0,canvas.width,canvas.height);
   ctx.clearRect(0,0,canvas.width/2,canvas.height);
-  const numRays = canvas.width;
+  const rayStep = 1; // Cast a ray every 3 pixels
+  const numRays = Math.floor(canvas.width / rayStep);
   const angleStep = fov / numRays;
   let rayAngle = player.angle - fov/2;
-  for (let i = 0; i < numRays; i++) {
+  for (let rayIdx = 0; rayIdx < numRays; rayIdx++) {
+    let i = rayIdx * rayStep;
     let sin = Math.sin(rayAngle);
     let cos = Math.cos(rayAngle);
     let dist = 0;
     let hit = false;
     var pic_dist = 0;
-    while (!hit && dist < 10000) {
+    while (!hit && dist < 1000) {
       dist += 1;
       var rayX = player.x + cos * dist;
       var rayY = player.y + sin * dist;
@@ -129,39 +144,15 @@ function castRays(player) {
         const wallHeight = 20000 / dist;
         i+=3
         let imageDrawn = false;
-        if (!imageDrawn && map[mapY1][mapX1] === 2) {
-          imageDrawn = true;
-          const spriteDist = dist;
-          const spriteScale = 30000 / spriteDist;
-          const spriteAspect = enemyImg.width / enemyImg.height;
-          const spriteHeight = spriteScale;
-          const spriteWidth = spriteScale * spriteAspect;
-          const dx = player_other.x - player.x;
-          const dy = player_other.y - player.y;
-          const angleToSprite = Math.atan2(dy, dx) - player.angle;
-          let relativeAngle = angleToSprite;
-          while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
-          while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
-          const halfFOV = player.fov / 2;
-          if (Math.abs(relativeAngle) < halfFOV) {
-            const screenX = (relativeAngle + halfFOV) / player.fov * canvas.width;
-            const screenY = (canvas.height - spriteHeight) / 2;
-            ctx.drawImage(
-              enemyImg,
-              0, 0, enemyImg.width, enemyImg.height,
-              screenX - spriteWidth / 2, screenY,  // center the image
-              spriteWidth, spriteHeight
-            );
-            // Overlay a semi-transparent black rectangle to darken the sprite
-            ctx.fillStyle = 'rgba(0,0,0,0.55)';
-            ctx.fillRect(screenX - spriteWidth / 2, screenY, spriteWidth, spriteHeight);
-          }
-        }
+        // Enemy image drawing removed from raycasting loop for performance
       }
     }
     let wallHeight =  20000/dist 
     let shade = 255 - dist *1.5;
-    // Check if enemy.png is visible for this ray
+    
+     math_testing();
+ 
+    // Check if enemy.png is visible for this ray and positions to center of the screen.
     let enemyOnScreen = false;
     const dx = player_other.x - player.x;
     const dy = player_other.y - player.y;
@@ -177,9 +168,14 @@ function castRays(player) {
     var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
     var f_y2 =  wallHeight- (i / 25.5) +150;
     var o_y1=(canvas.height - wallHeight)/2
-    art(wallHeight,shade,movement,i,f_y1,o_y1);
-    ctx.beginPath();
-    rayAngle =rayAngle + angleStep;
+    // Draw a wider wall slice to fill the gap
+    for (let w = 0; w < rayStep; w++) {
+      art(wallHeight, shade, movement, i + w, f_y1, o_y1);
+    }
+   // ctx.beginPath();
+
+   //make sure players do not go out of bounds
+    rayAngle = rayAngle + angleStep;
     player.x = Math.max(tileSize, Math.min(player.x, (map[0].length - 1) * tileSize - 1));
     player.y = Math.max(tileSize, Math.min(player.y, (map.length - 1) * tileSize - 1));
     player2.x = Math.max(tileSize, Math.min(player2.x, (map[0].length - 1) * tileSize - 1));
@@ -197,6 +193,50 @@ function castRays(player) {
   }
   drawMinimap(player);
   drawMinimap(player_other);
+
+  // --- Draw enemy image ONCE per frame if visible ---
+  const dx = player_other.x - player.x;
+  const dy = player_other.y - player.y;
+  const distToEnemy = Math.sqrt(dx * dx + dy * dy);
+  const angleToSprite = Math.atan2(dy, dx) - player.angle;
+  let relativeAngle = angleToSprite;
+  while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
+  while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
+  const halfFOV = player.fov / 2;
+  if (Math.abs(relativeAngle) < halfFOV) {
+    // Stepwise LOS check (like bullet logic)
+    let losBlocked = false;
+    let steps = Math.ceil(distToEnemy / 2); // 2 pixels per step
+    for (let s = 1; s < steps; s++) {
+      let t = s / steps;
+      let testX = player.x + (player_other.x - player.x) * t;
+      let testY = player.y + (player_other.y - player.y) * t;
+      let mapX = Math.floor(testX / tileSize);
+      let mapY = Math.floor(testY / tileSize);
+      if (map[mapY]?.[mapX] === 1) {
+        losBlocked = true;
+        break;
+      }
+    }
+    if (!losBlocked) {
+      const spriteScale = 30000 / distToEnemy;
+      const spriteAspect = enemyImg.width / enemyImg.height;
+      const spriteHeight = spriteScale;
+      const spriteWidth = spriteScale * spriteAspect;
+      const screenX = (relativeAngle + halfFOV) / player.fov * canvas.width;
+      const screenY = (canvas.height - spriteHeight) / 2;
+      ctx.drawImage(
+        enemyImg,
+        0, 0, enemyImg.width, enemyImg.height,
+        screenX - spriteWidth / 2, screenY,  // center the image
+        spriteWidth, spriteHeight
+      );
+      // Overlay a semi-transparent black rectangle to darken the sprite
+      //ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      //ctx.fillRect(screenX - spriteWidth / 2, screenY, spriteWidth, spriteHeight);
+    }
+  
+  }
 }
 
 const enemyAnimator = new OBJAnimator(
@@ -208,12 +248,64 @@ const enemyAnimator = new OBJAnimator(
 );
 
 function loop() {
+  
   const now = performance.now();
   let lastTime = now;
   const dt = (now - lastTime) / 1000;
   lastTime = now;
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const proj = projectiles[i];
+    // Stepwise bullet-enemy collision (like LOS logic)
+    let prevX = proj.x - proj.dx;
+    let prevY = proj.y - proj.dy;
+    let steps = Math.ceil(Math.sqrt(proj.dx*proj.dx + proj.dy*proj.dy) / 2);
+    let hitEnemy = false;
+    for (let s = 1; s <= steps; s++) {
+      let t = s / steps;
+      let bx = prevX + (proj.x - prevX) * t;
+      let by = prevY + (proj.y - prevY) * t;
+      // Project enemy to screen
+      const dx = player_other.x - player.x;
+      const dy = player_other.y - player.y;
+      const distToEnemy = Math.sqrt(dx * dx + dy * dy);
+      const angleToSprite = Math.atan2(dy, dx) - player.angle;
+      let relativeAngle = angleToSprite;
+      while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
+      while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
+      const halfFOV = player.fov / 2;
+      if (Math.abs(relativeAngle) < halfFOV) {
+        const spriteScale = 30000 / distToEnemy;
+        const spriteAspect = enemyImg.width / enemyImg.height;
+        const spriteHeight = spriteScale;
+        const spriteWidth = spriteScale * spriteAspect;
+        const screenX = (relativeAngle + halfFOV) / player.fov * canvas.width;
+        const screenY = (canvas.height - spriteHeight) / 2;
+        // Project bullet to screen
+        const projDx = bx - player.x;
+        const projDy = by - player.y;
+        const projDist = Math.sqrt(projDx * projDx + projDy * projDy);
+        const projAngle = Math.atan2(projDy, projDx) - player.angle;
+        let projRelAngle = projAngle;
+        while (projRelAngle < -Math.PI) projRelAngle += 2 * Math.PI;
+        while (projRelAngle > Math.PI) projRelAngle -= 2 * Math.PI;
+        if (Math.abs(projRelAngle) < halfFOV) {
+          const projScreenX = (projRelAngle + halfFOV) / player.fov * canvas.width;
+          const projScreenY = (canvas.height - (30000 / projDist)) / 2;
+          if (
+            projScreenX >= screenX - spriteWidth / 2 &&
+            projScreenX <= screenX + spriteWidth / 2 &&
+            projScreenY >= screenY &&
+            projScreenY <= screenY + spriteHeight
+          ) {
+            player_other.health = Math.max(0, player_other.health - 20);
+            projectiles.splice(i, 1);
+            hitEnemy = true;
+            break;
+          }
+        }
+      }
+    }
+    if (hitEnemy) continue;
     proj.x += proj.dx;
     proj.y += proj.dy;
     if (
@@ -223,45 +315,9 @@ function loop() {
       projectiles.splice(i, 1);
       continue;
     }
-    const dx = player_other.x - player.x;
-    const dy = player_other.y - player.y;
-    const distToEnemy = Math.sqrt(dx * dx + dy * dy);
-    const angleToSprite = Math.atan2(dy, dx) - player.angle;
-    let relativeAngle = angleToSprite;
-    while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
-    while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
-    const halfFOV = player.fov / 2;
-    if (Math.abs(relativeAngle) < halfFOV) {
-      const spriteScale = 30000 / distToEnemy;
-      const spriteAspect = enemyImg.width / enemyImg.height;
-      const spriteHeight = spriteScale;
-      const spriteWidth = spriteScale * spriteAspect;
-      const screenX = (relativeAngle + halfFOV) / player.fov * canvas.width;
-      const screenY = (canvas.height - spriteHeight) / 2;
-      const projDx = proj.x - player.x;
-      const projDy = proj.y - player.y;
-      const projDist = Math.sqrt(projDx * projDx + projDy * projDy);
-      const projAngle = Math.atan2(projDy, projDx) - player.angle;
-      let projRelAngle = projAngle;
-      while (projRelAngle < -Math.PI) projRelAngle += 2 * Math.PI;
-      while (projRelAngle > Math.PI) projRelAngle -= 2 * Math.PI;
-      if (Math.abs(projRelAngle) < halfFOV) {
-        const projScreenX = (projRelAngle + halfFOV) / player.fov * canvas.width;
-        const projScreenY = (canvas.height - (30000 / projDist)) / 2;
-        if (
-          projScreenX >= screenX - spriteWidth / 2 &&
-          projScreenX <= screenX + spriteWidth / 2 &&
-          projScreenY >= screenY &&
-          projScreenY <= screenY + spriteHeight
-        ) {
-          player_other.health = Math.max(0, player_other.health - 20);
-          projectiles.splice(i, 1);
-          continue;
-        }
-      }
-    }
   }
   updatePlayer();
+  //player shooting projectiles
   castRays(player);
   ctx.fillStyle = 'orange';
   for (let i = aiProjectiles.length - 1; i >= 0; i--) {
@@ -287,6 +343,7 @@ function loop() {
     ctx.arc(proj.x, proj.y, 5, 0, 2 * Math.PI);
     ctx.fill();
   }
+  //healthbar
   const playerBarWidth = 300;
   const playerBarHeight = 40;
   const playerBarX = canvas.width - playerBarWidth - 50;
