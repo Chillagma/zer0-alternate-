@@ -1,6 +1,7 @@
 
 // now you can use socket.on(), socket.emit(), etc.
 var canvas = document.getElementById("game");
+//const dFrag = document.createDocumentFragment();
 var ctx = canvas.getContext("2d");
 var movement = 0;
 var count = 0;
@@ -116,7 +117,7 @@ function castRays(player) {
   viewh=canvas.height;
   ctx.rect(canvas.width/2,0,canvas.width,canvas.height);
   ctx.clearRect(0,0,canvas.width/2,canvas.height);
-  const rayStep = 1; // Cast a ray every 3 pixels
+  const rayStep = 3; // Cast a ray every 3 pixels (increased for performance)
   const numRays = Math.floor(canvas.width / rayStep);
   const angleStep = fov / numRays;
   let rayAngle = player.angle - fov/2;
@@ -192,7 +193,7 @@ function castRays(player) {
     prevPlayerTileY = currTileY;
   }
   drawMinimap(player);
-  drawMinimap(player_other);
+  drawMinimap(player2);
 
   // --- Draw enemy image ONCE per frame if visible ---
   const dx = player_other.x - player.x;
@@ -316,7 +317,8 @@ function loop() {
       continue;
     }
   }
-  updatePlayer();
+  updatePlayer(player);
+  updatePlayer(player2);
   //player shooting projectiles
   castRays(player);
   ctx.fillStyle = 'orange';

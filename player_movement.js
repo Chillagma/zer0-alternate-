@@ -1,38 +1,60 @@
-function updatePlayer() {
+/**
+ * Handles player movement and emits player state to the server.
+ * Listens for updates from the server about all players.
+ */
 
-  
-      let speed_2 =2
-      let time = performance.now() / 1000;
-      if (keys['a']){
+// Assume 'player', 'player2', 'keys', 'speed', and 'window.socket' are defined globally
 
-        player.angle -= 0.05/speed_2;
-       //movement += Math.cos(movement/45) *55;
-      } 
-      if (keys['d']) {
-        player.angle += 0.05/speed_2;
-       // movement -= Math.cos(movement/45) *55;
-      }
-      if (keys['w']) {
-      //  movement += Math.cos(movement/45) *55;
-        player.x += Math.cos(player.angle) * speed;
-        player.y += Math.sin(player.angle) * speed ;
-        player2.x += Math.cos(player.angle) * speed;
-        player2.y += Math.sin(player.angle) * speed;
-     //   player_other.x += Math.cos(player.angle) * speed;
-     // player_other.y += Math.sin(player.angle) * speed;
-      }
-      if (keys['s']) {
-        player.x -= Math.cos(player.angle) * speed;
-        player.y -= Math.sin(player.angle) * speed;
-        player2.x -= Math.cos(player.angle) * speed;
-        player2.y -= Math.sin(player.angle) * speed;
-      //  player_other.x -= Math.cos(player.angle) * speed;
-    // player_other.y -= Math.sin(player.angle) * speed;
-      // movement -= Math.cos(mov      // Emit updated player  
-         
-    }
-    if (window.socket) {
-      window.socket.emit('player_update', { x: player.x, y: player.y, z: player.z || 0, angle: player.angle });
-    }
+function updatePlayer(player) {
+  let speed_2 = 2;
+
+  // Handle rotation
+  if (keys['a']) {
+    player.angle -= 0.05 / speed_2;
   }
-   // //datePlayer();
+  if (keys['d']) {
+    player.angle += 0.05 / speed_2;
+  }
+
+  // Handle movement
+  if (keys['w']) {
+    player.x += Math.cos(player.angle) * speed;
+    player.y += Math.sin(player.angle) * speed;
+    // Optionally update player2 if needed
+  }
+  if (keys['s']) {
+    player.x -= Math.cos(player.angle) * speed;
+    player.y -= Math.sin(player.angle) * speed;
+    // Optionally update player2 if needed
+  }
+
+  // Emit updated player state to the server
+  if (window.socket) {
+    window.socket.emit('player_update', {
+      x: player.x,
+      y: player.y,
+      z: player.z || 0,
+      angle: player.angle
+    });
+    // Log the local socket ID for debugging
+    window.socket.on('all_players', function(players) {
+    // 'players' is expected to be an object mapping socket IDs to player states
+    // Example: { "socketId1": {x, y, angle, ...}, "socketId2": {...}, ... }
+    console.log("All players' states:", players);
+
+    // You can update your local representation of other players here
+    // For example:
+    // for (const [id, state] of Object.entries(players)) {
+    //   if (id !== window.socket.id) {
+    //     // Update other players' positions in your game
+    //   }
+    // }
+  });
+  //  console.log("socket id: is", window.socket.id);
+  }
+}
+
+// Listen for updates about all players from the server
+if (window.socket) {
+  
+}

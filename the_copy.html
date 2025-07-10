@@ -21,8 +21,10 @@
   <script src="art_style.js"></script>
   <script src="game.js"></script>
 <script>
+  
   const socket = io();
   window.socket = socket;
+  var the = [];
   // Send initial player state when connected
   socket.on('connect', function() {
     // You can randomize or customize the initial state as needed
@@ -36,6 +38,7 @@
     const playerLog = document.getElementById('player-log');
     if (playerLog) {
       const playerIds = Object.keys(players);
+      
       if (playerIds.length === 0) {
         playerLog.textContent = 'No players online.';
       } else {
