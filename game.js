@@ -1,5 +1,6 @@
 
 // now you can use socket.on(), socket.emit(), etc.
+
 var canvas = document.getElementById("game");
 //const dFrag = document.createDocumentFragment();
 var ctx = canvas.getContext("2d");
@@ -34,12 +35,22 @@ const map = [
 
 const tileSize = 64;
 const projectiles = [];
+
 let player = { x: 150, y: 150, angle: 0,   fov: Math.PI / 3, health: 100, maxHealth: 100 };
 let player2= { x: 150, y: 150, angle: 0 };
 let player_other = { x: 300, y: 350, angle: 20, fov: Math.PI *2, health: 100, maxHealth: 100 };
 let prevPlayerTileX = Math.floor(player_other.x / tileSize);
 let prevPlayerTileY = Math.floor(player_other.y / tileSize);
-const fov = Math.PI / 3;
+var a =25
+var b =25;
+
+var fov = Math.PI/3;
+
+x= fov
+y=fov
+var i_count=0
+
+
 var speed = 2 ;
 const keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
@@ -62,6 +73,8 @@ console.log("this is distance"+distance);
 
 
 }
+
+
 //ai movement
 function updateAIPlayer(dt) {
   aiTimer -= dt;
@@ -105,140 +118,15 @@ document.addEventListener("keydown", e => {
       dx: Math.cos(player.angle) * 5,
       dy: Math.sin(player.angle) * 5
     });
-    count = 0;
+    
   }
 });
 
 const originalCastRays = castRays;
-function castRays(player) {
-  viewx=canvas.width/2;
-  viewy=0;
-  vieww=canvas.width
-  viewh=canvas.height;
-  ctx.rect(canvas.width/2,0,canvas.width,canvas.height);
-  ctx.clearRect(0,0,canvas.width/2,canvas.height);
-  const rayStep = 3; // Cast a ray every 3 pixels (increased for performance)
-  const numRays = Math.floor(canvas.width / rayStep);
-  const angleStep = fov / numRays;
-  let rayAngle = player.angle - fov/2;
-  for (let rayIdx = 0; rayIdx < numRays; rayIdx++) {
-    let i = rayIdx * rayStep;
-    let sin = Math.sin(rayAngle);
-    let cos = Math.cos(rayAngle);
-    let dist = 0;
-    let hit = false;
-    var pic_dist = 0;
-    while (!hit && dist < 1000) {
-      dist += 1;
-      var rayX = player.x + cos * dist;
-      var rayY = player.y + sin * dist;
-      var mapX1 = Math.floor(rayX / tileSize);
-      var mapY1 = Math.floor(rayY / tileSize);
-      var mapX2 = Math.floor((player2.x + cos * dist * Math.cos(player2.x / 60)) / tileSize);
-      var mapY2 = Math.floor((player2.y + sin * dist * Math.sin(player2.y / 60)) / tileSize);
-      if ((map[mapY1]?.[mapX1] === 1) || (map[mapY2]?.[mapX2] === 1)){
-        hit = true;
-      }
-      var mapX3 = Math.floor((player_other.x + cos * dist) / tileSize);
-      var mapY3 = Math.floor((player_other.y + sin * dist ) / tileSize);
-      if((map[mapY1]?.[mapX1] === 2)&&dist<100){
-        const wallHeight = 20000 / dist;
-        i+=3
-        let imageDrawn = false;
-        // Enemy image drawing removed from raycasting loop for performance
-      }
-    }
-    let wallHeight =  20000/dist 
-    let shade = 255 - dist *1.5;
-    
-     math_testing();
- 
-    // Check if enemy.png is visible for this ray and positions to center of the screen.
-    let enemyOnScreen = false;
-    const dx = player_other.x - player.x;
-    const dy = player_other.y - player.y;
-    const angleToSprite = Math.atan2(dy, dx) - player.angle;
-    let relativeAngle = angleToSprite;
-    while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
-    while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
-    const halfFOV = player.fov / 2;
-    if (Math.abs(relativeAngle) < halfFOV) {
-      enemyOnScreen = true;
-    }
-    if (enemyOnScreen) shade -= 155;
-    var f_y1 = (canvas.height - wallHeight) - 700 + (i / 25.5);
-    var f_y2 =  wallHeight- (i / 25.5) +150;
-    var o_y1=(canvas.height - wallHeight)/2
-    // Draw a wider wall slice to fill the gap
-    for (let w = 0; w < rayStep; w++) {
-      art(wallHeight, shade, movement, i + w, f_y1, o_y1);
-    }
-   // ctx.beginPath();
-
-   //make sure players do not go out of bounds
-    rayAngle = rayAngle + angleStep;
-    player.x = Math.max(tileSize, Math.min(player.x, (map[0].length - 1) * tileSize - 1));
-    player.y = Math.max(tileSize, Math.min(player.y, (map.length - 1) * tileSize - 1));
-    player2.x = Math.max(tileSize, Math.min(player2.x, (map[0].length - 1) * tileSize - 1));
-    player2.y = Math.max(tileSize, Math.min(player2.y, (map.length - 1) * tileSize - 1));
-    player_other.x = Math.max(tileSize, Math.min(player_other.x, (map[0].length - 1) * tileSize - 1));
-    player_other.y = Math.max(tileSize, Math.min(player_other.y, (map.length - 1) * tileSize - 1));
-  }
-  let currTileX = Math.floor(player_other.x / tileSize);
-  let currTileY = Math.floor(player_other.y / tileSize);
-  if ((currTileX !== prevPlayerTileX || currTileY !== prevPlayerTileY) && map[currTileY]?.[currTileX] === 0) {
-    map[prevPlayerTileY][prevPlayerTileX] = 0;
-    map[currTileY][currTileX] = 2;
-    prevPlayerTileX = currTileX;
-    prevPlayerTileY = currTileY;
-  }
-  drawMinimap(player);
-  drawMinimap(player2);
-
-  // --- Draw enemy image ONCE per frame if visible ---
-  const dx = player_other.x - player.x;
-  const dy = player_other.y - player.y;
-  const distToEnemy = Math.sqrt(dx * dx + dy * dy);
-  const angleToSprite = Math.atan2(dy, dx) - player.angle;
-  let relativeAngle = angleToSprite;
-  while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
-  while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
-  const halfFOV = player.fov / 2;
-  if (Math.abs(relativeAngle) < halfFOV) {
-    // Stepwise LOS check (like bullet logic)
-    let losBlocked = false;
-    let steps = Math.ceil(distToEnemy / 2); // 2 pixels per step
-    for (let s = 1; s < steps; s++) {
-      let t = s / steps;
-      let testX = player.x + (player_other.x - player.x) * t;
-      let testY = player.y + (player_other.y - player.y) * t;
-      let mapX = Math.floor(testX / tileSize);
-      let mapY = Math.floor(testY / tileSize);
-      if (map[mapY]?.[mapX] === 1) {
-        losBlocked = true;
-        break;
-      }
-    }
-    if (!losBlocked) {
-      const spriteScale = 30000 / distToEnemy;
-      const spriteAspect = enemyImg.width / enemyImg.height;
-      const spriteHeight = spriteScale;
-      const spriteWidth = spriteScale * spriteAspect;
-      const screenX = (relativeAngle + halfFOV) / player.fov * canvas.width;
-      const screenY = (canvas.height - spriteHeight) / 2;
-      ctx.drawImage(
-        enemyImg,
-        0, 0, enemyImg.width, enemyImg.height,
-        screenX - spriteWidth / 2, screenY,  // center the image
-        spriteWidth, spriteHeight
-      );
-      // Overlay a semi-transparent black rectangle to darken the sprite
-      //ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      //ctx.fillRect(screenX - spriteWidth / 2, screenY, spriteWidth, spriteHeight);
-    }
-  
-  }
+function lerp(start, end, t) {
+  return start + (end - start) * t;
 }
+
 
 const enemyAnimator = new OBJAnimator(
   3,
@@ -321,6 +209,7 @@ function loop() {
   updatePlayer(player2);
   //player shooting projectiles
   castRays(player);
+  //castRays(player2);
   ctx.fillStyle = 'orange';
   for (let i = aiProjectiles.length - 1; i >= 0; i--) {
     const proj = aiProjectiles[i];
@@ -398,6 +287,52 @@ function loop() {
   updateAIPlayer(dt);
   enemyAnimator.draw(ctx);
   requestAnimationFrame(loop);
-}
-
+  
+      a=25
+      b=25
+      document.addEventListener('mousemove', e => {
+  // Distance from the **viewport’s** top‑left corner
+  var mouse_x = e.clientX;
+  var mouse_y = e.clientY;
+  console.log(`mouse: ${x}, ${y}`);
+});
+   
+     // canvas.width = 1000;
+     // canvas.height = 1000;
+     // ctx.clearRect(0, 0, canvas.width, canvas.height);
+      //y= mx+b
+   
+       function hyperbola(){
+         count+=1;
+         center_x=canvas.width/2;
+         center_y=canvas.height/2;
+      for(let x=-550;x<600;x++){
+        for(let y=-550;y<600;y++){
+          ctx.fillStyle = "red";
+          if(Math.abs((x**2/a**2 - y**2/b**2) -1)<0.5){
+            ctx.fillStyle = "blue"
+           // 
+             angle= Math.atan2(center_y-y,center_x-x);
+           // ctx.restore();
+             ctx.fillRect(x+canvas.width/2 +Math.cos(angle+count/5)*50,y+canvas.height/2,1+Math.cos(angle+count/50)*50,1);
+          }
+   /*
+          if(Math.abs((a**2/x**2 + b**2/y**2) -1)<0.5){
+            ctx.fillStyle = "blue"
+           // 
+             angle= Math.atan2(center_y-y,center_x-x);
+           // ctx.restore();
+             ctx.fillRect(x+canvas.width/2 +Math.cos(angle+count/5)*50,y+canvas.height/2,1+Math.cos(angle+count/50)*50,1);
+          }*/
+         
+        }
+      
+      }
+      }
+    //  hyperbola();
+     
+      
+    }
+    
+  
 loop();

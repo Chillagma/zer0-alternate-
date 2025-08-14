@@ -30,6 +30,8 @@ function updatePlayer(player) {
 
   // Emit updated player state to the server
   if (window.socket) {
+   //basically it looks like it transfers information to player_update
+   //although this loooks like its in player_movement not minimap so you have to emit the variables there.
     window.socket.emit('player_update', {
       x: player.x,
       y: player.y,
@@ -55,6 +57,3 @@ function updatePlayer(player) {
 }
 
 // Listen for updates about all players from the server
-if (window.socket) {
-  
-}

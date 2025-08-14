@@ -1,3 +1,6 @@
+
+
+
 function drawMinimap(player) {
   const minimapScale = 0.2; 
   const minimapTileSize = tileSize * minimapScale;
@@ -26,6 +29,7 @@ function drawMinimap(player) {
       minimapTileSize
     );
   }
+ // console.log(window.xyz)
 }
 
   // Draw rays for player
@@ -72,10 +76,25 @@ function drawMinimap(player) {
 
     rayAngle += rayStep;
   }
-
+  
+    
+  
   // Draw player
   ctx.fillStyle = "red";
-  ctx.beginPath();
+  for (const id in window.allPlayers) {
+          const player = window.allPlayers[id];
+                        ctx.beginPath();
+                ctx.arc(
+                  10 + player.x * minimapScale,
+                  10 + player.y * minimapScale,
+                  5,
+                  0,
+                  Math.PI * 2
+                );
+                ctx.fill();
+          //console.log(`Player ${id}: x=${player.x}, y=${player.y}`);
+        }
+ /* ctx.beginPath();
   ctx.arc(
     10 + player.x * minimapScale,
     10 + player.y * minimapScale,
@@ -83,7 +102,9 @@ function drawMinimap(player) {
     0,
     Math.PI * 2
   );
-  ctx.fill();
+  ctx.fill();*/
+  //console.log(window.x_pos)
+  //console.log(window.y_pos)
 
   // Draw direction
   ctx.strokeStyle = "red";

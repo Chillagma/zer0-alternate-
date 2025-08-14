@@ -3,19 +3,46 @@
 function art(wallHeight,shade,movement,i,f_y1,o_y1){ctx.fillStyle = `rgb(255,0,0)`
           var rect_offset = 200
           var step = 30
+            a=25;
+          b=50;
+          
 
+         //copy and paste in game.js. 
+        //art( wallHeight*Math.cos(wallHeight/50), shade, movement, i + w, f_y1, o_y1);
+
+        //better hyperbolic level.  
+        //art( wallHeight*Math.abs((i**2/a**2 - w**2/b**2) -1), shade, movement, i + w, f_y1, o_y1)
+
+          //Hyper_bolic_level is LOCATED IN game.js instead/
+          function hyperbolic_level(){
+
+             if(shade%2==0){
+                fov=lerp( fov,Math.PI*2,0.0001);
+              //  fov=Math.PI*2
+              }
+              else{
+                fov =lerp( fov,Math.PI/3,0.0001);
+                // fov=Math.PI*2
+              }
+              
+          }
           shooting_projectiles();
           const centerX = canvas.width / 2;
           const centerY = canvas.height / 2;
           const segments = 12;;
           const angleStep = (2 * Math.PI) / segments;
+        
+          //i, f_y1, 1, wallHeight
+
+          
+
           function kaleidoDraw(x, y, w, h) {
             for (let seg = 0; seg < segments; seg++) {
               ctx.save();
               ctx.translate(centerX, centerY);
               ctx.rotate(seg * angleStep);
-              if (seg % 2 === 1) ctx.scale(1, -1);
-             ctx.fillRect(x - centerX, y - centerY, w*155, h/6);
+              if (seg % 2 === 1) ctx.scale(21, 22);
+             ctx.fillRect(x - centerX, y - centerY, w*4155, h/20);
       
               ctx.restore();
             }
@@ -25,8 +52,8 @@ function art(wallHeight,shade,movement,i,f_y1,o_y1){ctx.fillStyle = `rgb(255,0,0
             const spiralCY = canvas.height / 2;
 
             const z = wallHeight + 1;
-            const angle = i * 0.1; // Increase twist density
-            const scaleFactor = 20000 / (z); // Bigger constant = fuller screen
+            const angle = i * 0.01; // Increase twist density
+            const scaleFactor = 200000 / (z); // Bigger constant = fuller screen
             const radius = i * 0.5 + scaleFactor; // More aggressive growth
 
             const spiralX = spiralCX + Math.cos(angle + movement * 0.001) * radius;
@@ -35,11 +62,11 @@ function art(wallHeight,shade,movement,i,f_y1,o_y1){ctx.fillStyle = `rgb(255,0,0
             const alpha = Math.max(0.2, 1 - z / 1200); // Fade slightly with depth
             ctx.globalAlpha = alpha;
 
-  ctx.fillStyle = `rgb(${shade * 3 % 255}, ${(shade * 2 + i) % 255}, ${(shade * 5) % 255})`;
-  ctx.fillRect(spiralX, spiralY, 3, 3);
+            ctx.fillStyle = `rgb(${shade * 3 % 255}, ${(shade * 2 + i) % 255}, ${(shade * 5) % 255})`;
+            ctx.fillRect(spiralX, spiralY, 3, 3);
 
-  // Optional: mirror spiral across center for fullness
-  ctx.fillRect(canvas.width - spiralX, canvas.height - spiralY, 3, 3);
+            // Optional: mirror spiral across center for fullness
+            ctx.fillRect(canvas.width - spiralX, canvas.height - spiralY, 533, 533);
 }
             
           //ctx.fillRect(canvas.width-rect_offset,canvas.height-rect_offset, canvas.width+rect_offset, canvas.height+rect_offset);
@@ -55,11 +82,16 @@ function art(wallHeight,shade,movement,i,f_y1,o_y1){ctx.fillStyle = `rgb(255,0,0
           // ctx.fillRect(spiralWallX, spiralWallY, 2, wallHeight);
 
           //fourth perspective 
+        
 
-          
+        // drawHyperbola( canvas.width/2, canvas.height/2, 25, 25);
          //spiralDrawFullScreen(wallHeight, shade, movement, i, f_y1, o_y1);
         // kaleidoDraw(i, f_y1, 1, wallHeight);
-          ctx.globalAlpha = 0.4
+      function disable_spiral(){
+
+      
+        function disable_kaleido(){
+           ctx.globalAlpha = 0.4
           ctx.fillStyle = `rgb(0,0,${shade})`
           ctx.fillRect(i, f_y1, 1, wallHeight);
           ctx.globalAlpha = 0.4
@@ -90,12 +122,18 @@ function art(wallHeight,shade,movement,i,f_y1,o_y1){ctx.fillStyle = `rgb(255,0,0
             
           ctx.globalAlpha = 0.5;
           //caste floor(first perspective)
-
+        }
+         
+        disable_kaleido();
          //5 perspective 
           ctx.fillStyle = `rgb(0,0,${shade*2})`
          ctx.fillRect(i,-1*( (canvas.height - wallHeight)-900-(i/5.5)), 1, wallHeight);
           ctx.globalAlpha = 0.5;
-
+          return{
+            disable_kaleido
+          }
+}
+  disable_spiral();
           //6 perspective
           ctx.fillStyle = `rgb(${shade/2},${shade*2},55)`
           ctx.fillRect(i,-1*((canvas.height - wallHeight)-900), 1, wallHeight);
@@ -128,4 +166,11 @@ function art(wallHeight,shade,movement,i,f_y1,o_y1){ctx.fillStyle = `rgb(255,0,0
           
           
           ctx.globalAlpha = 0.5;
+            return {
+    kaleidoDraw,
+    hyperbolic_level,
+    disable_spiral,
+    spiralDrawFullScreen
+    
+  };
 }
