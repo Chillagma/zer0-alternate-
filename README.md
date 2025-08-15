@@ -1,1 +1,1 @@
-Just double click on start.bat
+Just double click on start_game.bat
