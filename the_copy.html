@@ -13,7 +13,7 @@
   <div id="player-log" style="color: white; position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 4px; max-width: 300px;"></div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="mini_map.js"></script>
-  <script src="mini_map_shooting.js"></script>
+  <script src="extra.js"></script>
   <script src="3d_object_loader.js"></script>
   <script src="levels.js"></script>
   <script src="shooting.js"></script>
@@ -26,7 +26,7 @@
   
   const socket = io();
   window.socket = socket;
-  
+  window.player_hit=0
   var the = [];
   // Send initial player state when connected
   socket.on('connect', function() {

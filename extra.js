@@ -1,3 +1,4 @@
+
 function handleProjectilesAndDraw() {
 
   const initialSize = 500;
@@ -71,7 +72,7 @@ function handleProjectilesAndDraw() {
   
 let startTime = performance.now();
   }
-
+ requestAnimationFrame(handleProjectilesAndDraw);
 }
 let j = 0;
 
@@ -90,5 +91,5 @@ function drawNextShrinkStep() {
   }
 }
 
-//drawNextShrinkStep();
-  requestAnimationFrame(handleProjectilesAndDraw);
+drawNextShrinkStep();
+ 
