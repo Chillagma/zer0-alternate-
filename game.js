@@ -381,7 +381,7 @@ for (const id in window.allPlayers) {
 
    
     ctx.fillStyle = 'lime';
-    ctx.fillRect(barX+ canvas.width/7, barY, barWidth-window.target , barHeight);
+    ctx.fillRect(barX+ canvas.width/7, barY, barWidth , barHeight);
 
     // White outline
     ctx.strokeStyle = 'white';
