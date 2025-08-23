@@ -35,8 +35,8 @@ enemyImg.onload = function() {
 const tileSize = 64;
 const projectiles = [];
 
-let player = { x: 150, y: 150, angle: 0,   fov: Math.PI / 3, health: 100, maxHealth: 100 };
-let player2= { x: 150, y: 150, angle: 0 };
+let player = { x: Math.random() * 1050 + 150, y: Math.random() * 350 + 155, angle: 0,   fov: Math.PI / 3, health: 100, maxHealth: 100 };
+let player2= { x: player.x, y: player.y, angle: 0 };
 let player_other = { x: 300, y: 350, angle: 20, fov: Math.PI *2, health: 100, maxHealth: 100 };
 let prevPlayerTileX = Math.floor(player_other.x / tileSize);
 let prevPlayerTileY = Math.floor(player_other.y / tileSize);
@@ -124,7 +124,7 @@ function updateProjectile() {
 
     if (Math.hypot(window.proj.x - p.x, window.proj.y - p.y) < 20) {
       p.health = Math.max(0, p.health - 10);
-      console.log(`Hit ${id}, health = ${p.health}`);
+    //  console.log(`Hit ${id}, health = ${p.health}`);
       window.proj.active = false;
       return;
     }
@@ -371,15 +371,17 @@ for (const id in window.allPlayers) {
     ctx.fillStyle = 'black';
     ctx.fillRect(barX + canvas.width/7, barY - 4, barWidth + 8, barHeight + 8);
 
-    // Draw red background (empty health)
-    ctx.fillStyle = 'green';
-    ctx.fillRect(barX+ canvas.width/7, barY, barWidth, barHeight);
-
+   
     // Draw green health portion
-    const healthRatio = player.health / (player.maxHealth || 1);
-    health_hit=0
+    var healthRatio = player.health / (player.maxHealth || 1);
+    
+    
+    
+// When you connect, socket.io gives you your id
+
+   
     ctx.fillStyle = 'lime';
-    ctx.fillRect(barX+ canvas.width/7, barY, barWidth-health_hit , barHeight);
+    ctx.fillRect(barX+ canvas.width/7, barY, barWidth-window.target , barHeight);
 
     // White outline
     ctx.strokeStyle = 'white';
@@ -401,7 +403,7 @@ for (const id in window.allPlayers) {
   // Distance from the **viewport’s** top‑left corner
   var mouse_x = e.clientX;
   var mouse_y = e.clientY;
-  console.log(`mouse: ${x}, ${y}`);
+  //console.log(`mouse: ${x}, ${y}`);
 });
    
      // canvas.width = 1000;

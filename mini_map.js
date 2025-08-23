@@ -108,7 +108,41 @@ if (window.proj.active) {
   let ty = Math.floor(window.proj.y / tileSize);
   if (map[ty]?.[tx] === 1 || map[ty]?.[tx] === 2) window.proj.active = false;
 
-  ctx.fillStyle = "red";
+  ctx.fillStyle = "orange";
+  ctx.beginPath();
+  ctx.arc(10 + window.proj.x * minimapScale, 10 + window.proj.y * minimapScale, 4, 0, Math.PI * 2);
+  ctx.fill();
+}
+const HIT_RADIUS = 20; // hit distance in world units
+
+// Move projectile
+if (window.proj.active) {
+  window.proj.x += Math.cos(window.proj.angle) * 35;
+  window.proj.y += Math.sin(window.proj.angle) * 35;
+
+  // Check collision with players
+  for (const id in window.allPlayers) {
+    const p = window.allPlayers[id];
+    if (p === player) continue; // skip shooter
+    if (!p.health) p.health = 100;
+
+    const dx = window.proj.x - p.x;
+    const dy = window.proj.y - p.y;
+
+    if (Math.sqrt(dx*dx + dy*dy) < HIT_RADIUS) {
+      p.health = Math.max(0, p.health - 10); // decrease health
+      window.proj.active = false; // stop projectile
+      break;
+    }
+  }
+
+  // Check collision with walls
+  const tx = Math.floor(window.proj.x / tileSize);
+  const ty = Math.floor(window.proj.y / tileSize);
+  if (map[ty]?.[tx] === 1 || map[ty]?.[tx] === 2) window.proj.active = false;
+
+  // Draw projectile on minimap
+  ctx.fillStyle = "orange"; // drawing only
   ctx.beginPath();
   ctx.arc(10 + window.proj.x * minimapScale, 10 + window.proj.y * minimapScale, 4, 0, Math.PI * 2);
   ctx.fill();
@@ -239,7 +273,7 @@ for (const id in window.allPlayers) {
   const barX = 10 + p.x * minimapScale - barW / 2;
   const barY = 10 + p.y * minimapScale - 10;
   ctx.fillStyle = "black";
-  ctx.fillRect(barX, barY, barW, barH);
+//  ctx.fillRect(barX, barY, barW-50, barH);
   ctx.fillStyle = "lime";
-  ctx.fillRect(barX, barY, barW * ratio, barH);
+//  ctx.fillRect(barX, barY, barW * ratio-50, barH);
 }

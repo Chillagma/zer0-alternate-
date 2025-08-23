@@ -85,14 +85,26 @@
         window.myPlayer = players[socket.id];
       for (const id in players) {
           const player = players[id];
-          console.log(`Player ${id}: x=${player.x}, y=${player.y}`);
+          //console.log(`Player ${id}: x=${player.x}, y=${player.y}`);
         }
+ // Client detects event
+socket.emit("damagePlayer", { targetId: somePlayerId });
+
 
       // ✅ Save to window only your own x/y/z position
-      if (myPlayer) {
+      if (myPlayer&&myPlayer.x>700) {
+       
+        window.health_hit=50
+        //console.log(myPlayer.x)
         //window.x_pos = myPlayer.x?.toFixed(2) ?? 'N/A';
         //window.y_pos = myPlayer.y?.toFixed(2) ?? 'N/A';
        // window.z_pos = myPlayer.z?.toFixed(2) ?? 'N/A';
+      }
+      if(myPlayer&&myPlayer.x<700){
+        window.health_hit=0
+      }
+      if(!myPlayer){
+        window.health_hit=0
       }
        
         //im guessing it's evaluating player.x and player.y differently. based on it's player update function and it player_movement.js (online.multiplayer.js is not used as much)

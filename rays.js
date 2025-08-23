@@ -242,12 +242,22 @@ function drawEnemies3D(player) {
     // You can add line-of-sight / wall occlusion checks here if you want
 
     // Projection parameters:
-    const spriteHeight = 5000 / dist; // scale sprite size by distance, tweak as needed
+     spriteHeight = 0
+    if (dist>0){
+        spriteHeight = 5000 / dist;
+    }
+
+    //might change this if it is in line with the players...
+    if (spriteHeight>800){
+        spriteHeight = 0
+        
+    }
+     // scale sprite size by distance, tweak as needed
     const spriteWidth = spriteHeight * (enemyImg.width / enemyImg.height);
     const screenX = (angleToEnemy + FOV / 2) / FOV * canvas.width;
 
     const screenY = (canvas.height / 2) - (spriteHeight / 2);
-
+    
     if (enemyImg.complete) {
       ctx.drawImage(enemyImg, screenX - spriteWidth / 2, screenY, spriteWidth, spriteHeight);
     }

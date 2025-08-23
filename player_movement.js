@@ -42,7 +42,7 @@ function updatePlayer(player) {
     window.socket.on('all_players', function(players) {
     // 'players' is expected to be an object mapping socket IDs to player states
     // Example: { "socketId1": {x, y, angle, ...}, "socketId2": {...}, ... }
-    console.log("All players' states:", players);
+   // console.log("All players' states:", players);
 
     // You can update your local representation of other players here
     // For example:
