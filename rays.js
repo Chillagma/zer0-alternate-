@@ -3,10 +3,12 @@ function castRays(player) {
   viewy=0;
   vieww=canvas.width
   viewh=canvas.height;
+  count_player=0
+  box = []
   ctx.rect(canvas.width/2,0,canvas.width,canvas.height);
   ctx.clearRect(0,0,canvas.width/2,canvas.height);
-  const rayStep = 3; // Cast a ray every 3 pixels (increased for performance)
-  const numRays = Math.floor(canvas.width / rayStep);
+  const rayStep = 1; // Cast a ray every 3 pixels (increased for performance)
+  var numRays = Math.floor(canvas.width / rayStep);
   const angleStep = fov / numRays;
   let rayAngle = player.angle - fov/2;
   for (let rayIdx = 0; rayIdx < numRays; rayIdx++) {
@@ -167,6 +169,7 @@ for (let y = 0; y < map.length; y++) {
         const screenY = y * tileSize;
 
         //the position where you draw
+
         ctx.drawImage(enemyImg, screenX, screenY, tileSize, tileSize);
     }
   }
@@ -211,12 +214,15 @@ function drawEnemies3D(player) {
   // Collect enemies to depth-sort
   const enemies = [];
 
-  for (const id in window.allPlayers) {
-    const enemy = window.allPlayers[id];
-    if (enemy === player) continue;  // Skip local player
+ for (const id in window.allPlayers) {
+  count_player+=1;
+  const enemy = window.allPlayers[id];
+  if (id === window.global_id) continue; // Skip local player
+  if(count_player>0)enemies.push(enemy);
+ // console.log("enemy",player)
+  //console.log("id",id)
+}
 
-    enemies.push(enemy);
-  }
 
   // Sort enemies back-to-front (farther first)
   enemies.sort((a, b) => {
@@ -226,6 +232,7 @@ function drawEnemies3D(player) {
   });
 
   for (const enemy of enemies) {
+
     const dx = enemy.x - player.x;
     const dy = enemy.y - player.y;
 
@@ -256,10 +263,16 @@ function drawEnemies3D(player) {
     const spriteWidth = spriteHeight * (enemyImg.width / enemyImg.height);
     const screenX = (angleToEnemy + FOV / 2) / FOV * canvas.width;
 
+    
     const screenY = (canvas.height / 2) - (spriteHeight / 2);
     
     if (enemyImg.complete) {
+      if (true) {   // ✅ compare IDs instead of objects
       ctx.drawImage(enemyImg, screenX - spriteWidth / 2, screenY, spriteWidth, spriteHeight);
+   
+    }
+       // console.log("enemyid",enemy.id)
+      //console.log("globalId",window.global_id)
     }
   }
 }

@@ -27,14 +27,43 @@
   const socket = io();
   window.socket = socket;
   window.player_hit=0
+ 
   var the = [];
   // Send initial player state when connected
   socket.on('connect', function() {
+     const playerLog = document.getElementById('player-log');
+    const playerIds = Object.keys(players);
+
+    if (playerIds.length === 0) {
+        //playerLog.textContent = 'No players online.';
+        return;
+    }
+
+    // Create a numbered array of players
+    const numberedPlayers = playerIds.map((id, index) => {
+        return {
+            number: index + 1, // 1, 2, 3, ...
+            id: id,
+            data: players[id]
+        };
+    });
+
+    // Example: display players with numbers
+    if (playerLog) {
+        playerLog.textContent = numberedPlayers.map(p => `${p.number}: ${p.data.name}`).join("\n");
+    }
+
+    // Example: access 3rd player by number
+    const thirdPlayer = numberedPlayers.find(p => p.number === 3);
+    if (thirdPlayer) {
+        console.log("Third player is:", thirdPlayer.data.name);
+    }
     // You can randomize or customize the initial state as needed
-    let initialState = { x: Math.random() * 500 + 100, y: Math.random() * 500 + 100, z: 0, angle: 0 };
+    let initialState = { x: Math.random() * 500 + 100, y: Math.random() * 500 + 100, z: 0, angle: 0,health:0 };
     socket.emit('player_update', initialState);
     //updated in the front end
   });
+  
   // Listen for updates from the server
   socket.on('players_update', function(players) {
     // You can update your local player list or render other players here
@@ -121,6 +150,19 @@
   socket.on("players_minimap",function(players){
 
     })
+socket.on("connect", () => {
+  console.log("My socket ID is:", socket.id);
+  player.id = socket.id;  // store it in your local player object
+});
+    // Client-side
+socket.on("state", (players) => {
+  // Copy all players from server
+  window.allPlayers = players;
+
+  // Remove the local player so we don't draw ourselves
+  delete window.allPlayers[socket.id];
+});
+
 </script>
   
 </body>

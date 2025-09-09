@@ -6,7 +6,7 @@
 // Assume 'player', 'player2', 'keys', 'speed', and 'window.socket' are defined globally
 
 function updatePlayer(player) {
-  let speed_2 = 2;
+  let speed_2 = 1.5;
 
   // Handle rotation
   if (keys['a']) {
@@ -23,8 +23,8 @@ function updatePlayer(player) {
     // Optionally update player2 if needed
   }
   if (keys['s']) {
-    player.x -= Math.cos(player.angle) * speed;
-    player.y -= Math.sin(player.angle) * speed;
+    player.x -= Math.cos(player.angle) * speed*0;
+    player.y -= Math.sin(player.angle) * speed*0;
     // Optionally update player2 if needed
   }
 

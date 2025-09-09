@@ -6,6 +6,8 @@ var canvas = document.getElementById("game");
 var ctx = canvas.getContext("2d");
 var movement = 0;
 var count = 0;
+var count_bar=0
+window.p=0
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -35,7 +37,7 @@ enemyImg.onload = function() {
 const tileSize = 64;
 const projectiles = [];
 
-let player = { x: Math.random() * 1050 + 150, y: Math.random() * 350 + 155, angle: 0,   fov: Math.PI / 3, health: 100, maxHealth: 100 };
+let player = { x: Math.random() * 1050 + 150, y: Math.random() * 350 + 155, angle: 0,   fov: Math.PI / 3, health: 50, };
 let player2= { x: player.x, y: player.y, angle: 0 };
 let player_other = { x: 300, y: 350, angle: 20, fov: Math.PI *2, health: 100, maxHealth: 100 };
 let prevPlayerTileX = Math.floor(player_other.x / tileSize);
@@ -113,20 +115,40 @@ if (!window.proj) {
 function updateProjectile() {
   if (!window.proj.active) return;
 
+  // Projectile movement
   window.proj.x += Math.cos(window.proj.angle) * 35;
   window.proj.y += Math.sin(window.proj.angle) * 35;
 
   // Player collision
   for (const id in window.allPlayers) {
     const p = window.allPlayers[id];
-    if (p === player) continue; // don't hit self
-    if (p.health == null) p.health = 100;
+    if (p.id === player.id) continue; // don't hit self
+//count_bar+=1
+    // Initialize health & per-player damage tracking
+    //if (p.health == null) p.health = 100;
+    if (p.health_build == null) p.health_build = 0;
+    if (p.health_cooldown == null) p.health_cooldown = false;
+    if (p.overall_health == null) p.overall_health = 10 * p.health;
 
     if (Math.hypot(window.proj.x - p.x, window.proj.y - p.y) < 20) {
-      p.health = Math.max(0, p.health - 10);
-    //  console.log(`Hit ${id}, health = ${p.health}`);
-      window.proj.active = false;
-      return;
+      if (!p.health_cooldown && p.health_build <= 17) {
+        p.health_build += 1;
+
+        // Update THIS player’s healthbar only
+        p.overall_health = 10 * 0;
+
+        // Damage THIS player
+      //  p.health =0;
+       // if (p.health < 0) p.health = 0;
+
+        // Start cooldown for THIS player
+        
+        p.health_cooldown = true;
+
+       // console.log(`Hit ${id}, health = ${p.health}`);
+      }
+
+      return; // stop checking other players after hit
     }
   }
 
@@ -137,6 +159,7 @@ function updateProjectile() {
     window.proj.active = false;
   }
 }
+
 
 
 
@@ -325,7 +348,7 @@ function loop() {
     const dy = proj.y - player.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < 32) {
-      player.health = Math.max(0, player.health - 20);
+      player.health = 0
       aiProjectiles.splice(i, 1);
       continue;
     }
@@ -340,16 +363,19 @@ function loop() {
 
   // Loop through every player and draw their health bar
 let index = 0; // to offset each bar vertically
-
+//var count_bar = 0
 for (const id in window.allPlayers) {
 
-    const player = window.allPlayers[id];
+    //count_bar = count_bar +1
 
+    const player = window.allPlayers[id];
+    
     const barWidth = 150;
     const barHeight = 20;
     const barX = 20; // fixed left position
     const barY = 40 + index * (barHeight + 20); // stack bars down
-
+ const numericId = Number(id); // converts "1" -> 1
+   // console.log("number id is =",numericId);
     /*
     const enemyBarWidth = 300;
     const enemyBarHeight = 40;
@@ -372,16 +398,39 @@ for (const id in window.allPlayers) {
     ctx.fillRect(barX + canvas.width/7, barY - 4, barWidth + 8, barHeight + 8);
 
    
-    // Draw green health portion
-    var healthRatio = player.health / (player.maxHealth || 1);
-    
-    
-    
-// When you connect, socket.io gives you your id
-
    
+    var healthRatio = 50
+    
+      //console.log("id is ",id)
+      //console.log("window.id is",window.allPlayers[id])
+   // if (count_bar==2){
+   if (window.global_id==id){
+    
+    player.health = window.overall_health
+    
+
+   }
+   else{
+    player.health=player.health
+   }
+      
+
+    //}
+     
+// When you connect, socket.io gives you your id
+    //some testing
+    /*
+    if (count_bar ==2){
+      healthRatio=50
+    }
+    else{
+      healthRatio=0
+    }*/
+    // Draw green health portion
+  //  console.log("player_health",player.health)
+    
     ctx.fillStyle = 'lime';
-    ctx.fillRect(barX+ canvas.width/7, barY, barWidth , barHeight);
+    ctx.fillRect(barX+ canvas.width/7, barY, barWidth-player.health , barHeight);
 
     // White outline
     ctx.strokeStyle = 'white';
