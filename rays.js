@@ -7,7 +7,7 @@ function castRays(player) {
   box = []
   ctx.rect(canvas.width/2,0,canvas.width,canvas.height);
   ctx.clearRect(0,0,canvas.width/2,canvas.height);
-  const rayStep = 1; // Cast a ray every 3 pixels (increased for performance)
+  const rayStep = 35; // Cast a ray every 3 pixels (increased for performance)
   var numRays = Math.floor(canvas.width / rayStep);
   const angleStep = fov / numRays;
   let rayAngle = player.angle - fov/2;
@@ -41,7 +41,7 @@ function castRays(player) {
       }
     }
     let wallHeight =  20000/dist 
-    let shade = 255 - dist *1.5;
+    let shade = 255 - dist *1.5 +Math.cos(dist/25)*400;
    //fov=lerp(fov,fov +Math.cos(dist),0.0001);
     function hyperbolic_level(){
       if(dist%2==0){
