@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibrant 3D Raycasting FPS</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+        canvas { 
+            display: block; 
+            background: #000;
+        }
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #00ff00;
+            font-size: 12px;
+            text-shadow: 0 0 10px #00ff00;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="hud">
+        <div>Pos: <span id="posX">0</span>, <span id="posY">0</span></div>
+        <div>Angle: <span id="angle">0</span></div>
+        <div style="margin-top: 10px;">W/A/S/D or Arrow Keys to Move</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const hudX = document.getElementById('posX');
+        const hudY = document.getElementById('posY');
+        const hudAngle = document.getElementById('angle');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Larger, more interesting map
+        const map = [
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,1],
+            [1,0,1,0,1,0,1,0,0,1],
+            [1,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,1,1,0,1],
+            [1,0,0,0,0,0,0,0,0,1],
+            [1,0,1,0,1,0,1,0,1,1],
+            [1,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,1,1,1,1,0,1],
+            [1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        const tileSize = 64;
+        let player = { x: 150, y: 150, angle: 0 };
+        const fov = Math.PI / 3;
+        let speed = 3;
+        const keys = {};
+
+        document.addEventListener('keydown', e => keys[e.key] = true);
+        document.addEventListener('keyup', e => keys[e.key] = false);
+
+        function updatePlayer() {
+            if (keys['w'] || keys['ArrowUp']) {
+                player.x += Math.cos(player.angle) * speed;
+                player.y += Math.sin(player.angle) * speed;
+            }
+            if (keys['s'] || keys['ArrowDown']) {
+                player.x -= Math.cos(player.angle) * speed;
+                player.y -= Math.sin(player.angle) * speed;
+            }
+            if (keys['a'] || keys['ArrowLeft']) {
+                player.angle -= 0.05;
+            }
+            if (keys['d'] || keys['ArrowRight']) {
+                player.angle += 0.05;
+            }
+
+            // Update HUD
+            hudX.textContent = Math.floor(player.x);
+            hudY.textContent = Math.floor(player.y);
+            hudAngle.textContent = Math.floor((player.angle * 180) / Math.PI);
+        }
+
+        function castRays() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const numRays = canvas.width;
+            const angleStep = fov / numRays;
+            let rayAngle = player.angle - fov / 2;
+            let time = performance.now() / 1000;
+
+            for (let i = 0; i < numRays; i++) {
+                let sin = Math.sin(rayAngle);
+                let cos = Math.cos(rayAngle);
+                let dist = 0;
+                let hit = false;
+
+                while (!hit && dist < 1000) {
+                    dist += 0.25;
+                    let mapX = Math.floor((player.x + cos * dist) / tileSize);
+                    let mapY = Math.floor((player.y + sin * dist) / tileSize);
+
+                    if (map[mapY]?.[mapX] === 1) hit = true;
+                }
+
+                let wallHeight = Math.min(20000 / dist, canvas.height);
+                let shade = Math.max(0, 255 - dist * 1.5);
+                let centerY = (canvas.height - wallHeight) / 2;
+
+                // Create vibrant color cycling effect
+                let colorMode = Math.floor((time * 2 + i / 100) % 8);
+                
+                ctx.globalAlpha = 0.9;
+                
+                switch(colorMode % 8) {
+                    case 0:
+                        ctx.fillStyle = `rgb(${shade}, 0, ${255-shade})`;
+                        break;
+                    case 1:
+                        ctx.fillStyle = `rgb(0, ${shade}, ${255-shade})`;
+                        break;
+                    case 2:
+                        ctx.fillStyle = `rgb(${shade}, ${shade}, 0)`;
+                        break;
+                    case 3:
+                        ctx.fillStyle = `rgb(${255-shade}, 0, ${shade})`;
+                        break;
+                    case 4:
+                        ctx.fillStyle = `rgb(0, ${255-shade}, ${shade})`;
+                        break;
+                    case 5:
+                        ctx.fillStyle = `rgb(${shade}, ${255-shade}, 0)`;
+                        break;
+                    case 6:
+                        ctx.fillStyle = `hsl(${(shade * 360) / 255}, 100%, 50%)`;
+                        break;
+                    case 7:
+                        ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
+                        break;
+                }
+
+                // Main wall
+                ctx.fillRect(i, centerY, 1, wallHeight);
+
+                // Add neon glow effect on closer walls
+                if (wallHeight > 100) {
+                    ctx.globalAlpha = 0.3;
+                    ctx.fillStyle = `rgb(255, 255, 255)`;
+                    ctx.fillRect(i, centerY, 1, wallHeight);
+                    ctx.globalAlpha = 0.9;
+                }
+
+                // Floor
+                ctx.globalAlpha = 0.6;
+                ctx.fillStyle = `rgb(${shade/2}, ${shade/3}, ${shade/2})`;
+                ctx.fillRect(i, centerY + wallHeight, 1, canvas.height - centerY - wallHeight);
+
+                // Ceiling
+                ctx.fillStyle = `rgb(${shade/3}, ${shade/2}, ${shade/3})`;
+                ctx.fillRect(i, 0, 1, centerY);
+
+                rayAngle += angleStep;
+            }
+
+            ctx.globalAlpha = 1.0;
+        }
+
+        function gameLoop() {
+            updatePlayer();
+            castRays();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
